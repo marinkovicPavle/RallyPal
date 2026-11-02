@@ -185,5 +185,24 @@ export default {
   // what goes to Strava and Intervals.icu with a match (shared/integrations.js)
   'out.vs': 'protiv: {name}',
   'out.score': 'Rezultat',
-  'out.by': 'Zabeleženo u aplikaciji RallyPal'
+  'out.by': 'Zabeleženo u aplikaciji RallyPal',
+
+  // free trial and unlock (shared/licence.js, page/unlock.js)
+  'trial.left': 'Preostalo besplatnih mečeva: {n}',
+  'trial.ended': 'Besplatna proba je završena',
+  'home.unlock': 'OTKLJUČAJ',
+  'unlock.title': 'OTKLJUČAJ RALLYPAL',
+  'unlock.scan': 'Skeniraj ili idi na {url}',
+  'unlock.price': '{price} jednom, zauvek tvoje',
+  'unlock.restore': 'Već plaćeno? {url}',
+  'unlock.getting': 'Stiže tvoj kod…',
+  'unlock.waiting': 'Čeka se uplata…',
+  'unlock.noCode': 'Još nema koda, pokušavam ponovo…',
+  'unlock.kpayDown': 'KiezelPay nije dostupan',
+  'unlock.done': 'Otključano',
+  'unlock.thanks': 'Hvala!',
+  'unlock.open': 'Sve kombinacije, pravila i podešavanja su sada otvoreni',
+  'set.unlock': 'Otključaj RallyPal',
+  'set.unlockSub': '{price} jednom · {trial}',
+  'about.full': '{v} · puna'
 }

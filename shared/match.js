@@ -15,6 +15,11 @@ import { isSport, sanitizeRules, sanitizeDoubles, paramsOf } from './rules'
 const TENNIS_POINTS = ['0', '15', '30', '40']
 const TOTAL_SERVE_BLOCK = 4
 const SUPER_TIEBREAK = 10
+// A match left open and ended much later (the next day) ends a minute after its last point, so Strava
+// doesn't get a 16-hour workout (ROAST item 6). The heart rate stops after IDLE_HR_S without a point.
+export const IDLE_END_S = 600
+export const END_GRACE_S = 60
+export const IDLE_HR_S = 1800
 
 // setup: { id, sport, rules, doubles }, choice: { first: team serving first, mine: who of team 0 serves first }
 export function newMatch(setup, choice, now) {
@@ -57,8 +62,22 @@ export function setServer(m, team, player, now) {
 
 export function endMatch(m, now) {
   if (replay(m).done) return false
-  m.ev.push(['e', secOf(m, now)])
+  const last = lastSec(m)
+  let sec = secOf(m, now)
+  if (sec - last > IDLE_END_S) sec = last + END_GRACE_S
+  m.ev.push(['e', sec])
   return true
+}
+
+// seconds from the start to the last event (0 before the first point)
+export function lastSec(m) {
+  const e = m.ev.length ? m.ev[m.ev.length - 1] : null
+  return e ? e[e.length - 1] : 0
+}
+
+// true when no point was played for IDLE_HR_S: the heart rate is no longer recorded
+export function idle(m, now) {
+  return secOf(m, now) - lastSec(m) > IDLE_HR_S
 }
 
 export function undo(m) {
@@ -69,7 +88,7 @@ export function undo(m) {
 
 // seconds played: up to the last event once the match is over
 export function duration(m, now, done) {
-  if (done) return m.ev.length ? m.ev[m.ev.length - 1][m.ev[m.ev.length - 1].length - 1] : 0
+  if (done) return lastSec(m)
   return secOf(m, now)
 }
 
@@ -154,6 +173,11 @@ function init(m) {
     srv: m.first, // serving team (rally, squash, sideout)
     gf: m.first, // team that served first in the current game
     pos: [m.mine, 0], // player of each team standing in the right court
+    // rally scoring in doubles when the opponents serve first: who of your team serves your first serve
+    // (m.mine) is placed when your team first gets the serve, by the score then (ROAST item 10)
+    pend: P.model === 'rally' && m.doubles && m.first === 1 ? 0 : -1,
+    mine: m.mine,
+    swapped: false, // table tennis doubles: the receivers' order changed in the deciding game
     num: 1, // pickleball server number
     sp: 0, // pickleball serving player
     side: 'R', // squash serving side
@@ -331,9 +355,29 @@ function rallyPoint(st, sv, w) {
     } else st.srv = w
   }
   st.p[w]++
+  // the first serve of your team, opponents having served first: the player you named serves it, from
+  // the court the score gives
+  if (st.pend === w && st.srv === w) {
+    st.pos[w] = st.p[w] % 2 === 1 ? 1 - st.mine : st.mine
+    st.pend = -1
+  }
+  if (st.model === 'tt') ttSwap(st, w)
   const a = st.p[w]
   const b = st.p[1 - w]
   if (a >= P.to && (a - b >= 2 || (P.cap && a >= P.cap))) winRallyGame(st, w)
+}
+
+// Table tennis doubles, the last possible game: when a pair first reaches 5 points (10 in games to 21) the
+// receiving pair changes its order of receiving, so the next server of that pair changes (ROAST item 10)
+function ttSwap(st, w) {
+  const P = st.P
+  if (!st.doubles || st.swapped) return
+  if (st.won[0] !== P.win - 1 || st.won[1] !== P.win - 1) return
+  const half = P.to === 21 ? 10 : 5
+  if (st.p[w] !== half || st.p[1 - w] >= half) return
+  st.swapped = true
+  const next = serverOf(st)
+  st.pshift[1 - next.team] ^= 1
 }
 
 function sideoutPoint(st, w) {
@@ -411,15 +455,22 @@ function applyServer(st, team, player) {
     st.srv = team
     if (n === 0) st.gf = team
     if (st.doubles) st.pos[team] = st.p[team] % 2 === 1 ? 1 - player : player
+    if (team === st.pend) st.pend = -1
   } else {
-    if (st.srv !== team) st.num = 1
+    const switched = st.srv !== team
+    if (switched) st.num = 1
     st.srv = team
     if (n === 0) {
       st.gf = team
       if (st.doubles) st.pos[team] = player
       startSideoutGame(st)
-    }
-    st.sp = st.doubles ? player : 0
+      st.sp = st.doubles ? player : 0
+    } else if (switched) {
+      // like a side out: the side that now serves starts from the right court, with the player named
+      // (the watch names the first player for the opponents) standing there (ROAST item 10)
+      if (st.doubles) st.pos[team] = player
+      st.sp = st.doubles ? player : 0
+    } else st.sp = st.doubles ? player : 0
   }
 }
 

@@ -1,6 +1,6 @@
 # RallyPal: stanje izrade
 
-Poslednja izmena: 2. 11. 2026. Svaka nova izmena dopisuje se gore u "Dnevnik", a faze i "Šta čeka" se ažuriraju.
+Poslednja izmena: 2. 11. 2026, 15:00. Svaka nova izmena dopisuje se gore u "Dnevnik", a faze i "Šta čeka" se ažuriraju.
 
 ## Faze (iz [plan-izrade.md](plan-izrade.md))
 
@@ -10,33 +10,38 @@ Poslednja izmena: 2. 11. 2026. Svaka nova izmena dopisuje se gore u "Dnevnik", a
 | 2. Bodovanje svih šest sportova | Gotovo 20. 10. (`shared/rules.js`, `shared/match.js`) |
 | 3. Aplikacija na satu | Gotovo, probano na T-Rex 3 Pro 21. 10., izmene posle probe urađene (odluke 33 do 40) |
 | 4. Telefon (Setups, History, Stats, Settings) | Gotovo 21. 10. (odluka 42), plus srpski, QR i Feedback (43 do 45) |
-| 5. Proba i naplata (3 meča, KiezelPay, pravi appId) | Nije počelo |
+| 5. Proba i naplata (3 meča, KiezelPay, pravi appId) | Kod gotov 2. 11. (odluka 47); čeka pravi appId i KiezelPay App ID |
 | 6. Strava i Intervals.icu | Napravljeno 21. 10. (odluka 46), čeka probu na pravom telefonu |
-| 7. Store (ikonica, slike, opisi, privatnost, ZAB) | Nije počelo |
+| 7. Store (ikonica, slike, opisi, privatnost, ZAB) | Paket gotov 2. 11. ([SUBMIT.md](SUBMIT.md)); čeka `zeus build` i slanje |
 
 ## Šta čeka
 
-**Od Pavla**
-- Izbor brojeva iz [ROAST.md](ROAST.md) (22. 10.). Ništa iz roast-a se ne pravi pre izbora.
-- Odluka za Stravu (ROAST stavka 4): od 30. 6. 2026 Strava traži plaćenu pretplatu od vlasnika svake Strava API aplikacije, pa (a) to piše u opisu, ili (b) jedna zajednička RallyPal Strava aplikacija.
+**Od Pavla (redom iz [SUBMIT.md](SUBMIT.md))**
+- Pravi appId sa console.zepp.com (u `app.json` umesto 1099458) i KiezelPay App ID (u `shared/licence.js`, `KPAY_APP_ID`).
+- Probna kupovina u test režimu, pa `KPAY_TEST = false`, `zeus build` i slanje.
+- Odluka za Stravu (ROAST stavka 4): za 1.0 ostaje kako jeste (a); zajednička RallyPal Strava aplikacija (b) bi bila 1.1.
 - Proba Strave i Intervals-a na telefonu: Connect Strava, kratak meč sa pulsom, Check the connection za Intervals.
 - Odgovori: da li Zepp-ov trening može da ide uz RallyPal, i šta radi taster dok je ekran ugašen.
-- Za fazu 5: nova aplikacija na console.zepp.com (provera imena RallyPal) i u KiezelPay-u.
+- ROAST stavke koje nisu urađene (5, 7, 11, 12, 14 do 22): posle 1.0 ili kad kažeš.
 
 **Nije provereno na pravom uređaju**
+- Kupovina kroz KiezelPay za RallyPal (kod je iz SaunaPal-a, koji radi u store-u).
+- Brojač probe na Cloudflare servisu iz RallyPal-a (isti servis kao SaunaPal, svoji ključevi).
 - Zepp dugme Connect na iPhonu i adresa za povratak `zepp-os.zepp.com`.
 - Slanje fajla sa pulsom (multipart) kroz Zepp fetch.
 - Da li Strava i Intervals.icu primaju Padel, Pickleball i ostale kao tip aktivnosti.
 - Baterija na meču od sat vremena.
 
-## Provere koje prolaze (2. 11. 2026)
+## Provere koje prolaze (2. 11. 2026, 15:00)
 
-- 70 testova (`npm test`), među njima nasumični mečevi za svaku kombinaciju pravila.
-- Simulator sata: 7 veličina ekrana x 7 jezika, 0 preklapanja ili odsečenog teksta (poslednji put 21. 10.).
-- Telefon: crtanje stranice podešavanja bez dugmadi sa tekstom u dva reda (21. 10.).
+- 87 testova (`npm test`), među njima nasumični mečevi za svaku kombinaciju pravila, proba i KiezelPay, i test za svaku popravku iz ROAST-a.
+- Simulator sata: 7 veličina ekrana x 7 jezika, 2.996 ekrana sa ekranima probe i otključavanja, 0 preklapanja ili odsečenog teksta.
+- Telefon: stranica u probi, posle probe i u punoj verziji (crtano 2. 11.).
+- Svaka ulazna tačka (stranice, kartica, servis, telefon) se prevodi za ES2015 bez greške.
 
 ## Dnevnik
 
+- **2. 11. 2026, 15:00:** faza 5 i 7 i greške iz ROAST-a (odluke 47 i 48). Proba od 3 meča i KiezelPay kao SaunaPal: brojač na satu i na Cloudflare servisu, ekran za otključavanje na satu, OTKLJUČAJ umesto NOVI MEČ posle probe, katanci na telefonu. Greške: 6 (meč ostavljen otvoren), 8 (vraćanje istorije i grafici pulsa), 9 (red za slanje), 10 (servis u dublu), 13 (kratki mečevi). Paket za store u `docs/store/` i [SUBMIT.md](SUBMIT.md); `.dev/tools/build-copy.sh` kopira samo aplikaciju za `zeus build`.
 - **2. 11. 2026:** kod i sva dokumentacija prvi put u GitHub repo (stanje sa 22. 10.).
 - **22. 10. 2026:** roast pre izlaska, [ROAST.md](ROAST.md): 22 stavke; greške ponovljene probnim skriptama (meč završen sutra traje 16 h na Stravi, sat ne vraća istoriju ako već ima meč, grafici pulsa se brišu posle 20 mečeva, dupli Intervals unos, red za slanje se blokira, servis u dublu). Nađeno i da Strava traži pretplatu za API (od 30. 6. 2026) i menja adresu API-ja od 4. 1. 2027.
 - **21. 10. 2026, 13:00:** faza 6 na Macu: Strava i Intervals.icu po [rallypal-strava-telefon-v2.png](rallypal-strava-telefon-v2.png) (odluka 46).

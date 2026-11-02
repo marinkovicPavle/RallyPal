@@ -12,8 +12,10 @@
 import { getAppWidgetSize, setAppWidgetSize } from '@zos/ui'
 import { push } from '@zos/router'
 import { W, K, ROUND, C, px, newScreen, text, limeButton, img, cover } from '../utils/ui'
-import { loadHistory, loadActive } from '../utils/data'
+import { loadHistory, loadActive, loadMeta } from '../utils/data'
 import { cardView } from '../shared/card'
+import { trialOf } from '../shared/licence'
+import { t } from '../shared/i18n'
 
 const CARD_H = ROUND ? 254 : 240
 const PAD = 30
@@ -73,6 +75,8 @@ AppWidget({
     cover({ x: 0, y: 0, w, h }, () => this.open(null))
     const bw = px(240)
     const go = view.mode === 'match' ? null : { go: 1 }
-    limeButton({ x: Math.round((w - bw) / 2), y: Math.min(px(169), h - px(58) - px(20)), w: bw, h: px(58) }, view.button, 24, () => this.open(go))
+    // after the free trial the button opens the unlock screen (page/index.js sends it there)
+    const label = view.mode !== 'match' && trialOf(loadMeta()).locked ? t('home.unlock') : view.button
+    limeButton({ x: Math.round((w - bw) / 2), y: Math.min(px(169), h - px(58) - px(20)), w: bw, h: px(58) }, label, 24, () => this.open(go))
   }
 })

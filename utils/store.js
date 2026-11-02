@@ -9,7 +9,7 @@ export const FILES = {
   hr: 'hr.json', // { id, hr: [[sec, bpm]] } its heart rate, saved less often (the file grows)
   history: 'history.json', // finished matches, newest first
   outbox: 'outbox.json', // [{ op: 'upsert' | 'delete', id }] waiting for the phone
-  meta: 'meta.json', // { lastSetup, bgAsked, restoredAt }
+  meta: 'meta.json', // { lastSetup, bgAsked, restoredAt, restorePage, licensed, trialIds, payCode }
   bg: 'bg.json', // heart rate the background service recorded while the app was closed
   alive: 'alive.json' // { at }: when the match page was last on screen
 }

@@ -181,5 +181,24 @@ export default {
   // what goes to Strava and Intervals.icu with a match (shared/integrations.js)
   'out.vs': 'contre {name}',
   'out.score': 'Score',
-  'out.by': 'Enregistré avec RallyPal'
+  'out.by': 'Enregistré avec RallyPal',
+
+  // free trial and unlock (shared/licence.js, page/unlock.js)
+  'trial.left': 'Matchs gratuits restants : {n}',
+  'trial.ended': 'Essai gratuit terminé',
+  'home.unlock': 'DÉBLOQUER',
+  'unlock.title': 'DÉBLOQUER RALLYPAL',
+  'unlock.scan': 'Scanne ou va sur {url}',
+  'unlock.price': '{price} une fois, pour toujours',
+  'unlock.restore': 'Déjà payé ? {url}',
+  'unlock.getting': 'Récupération du code…',
+  'unlock.waiting': 'En attente du paiement…',
+  'unlock.noCode': 'Pas encore de code, nouvel essai…',
+  'unlock.kpayDown': 'KiezelPay injoignable',
+  'unlock.done': 'Débloqué',
+  'unlock.thanks': 'Merci !',
+  'unlock.open': 'Tous les formats, règles et réglages sont ouverts',
+  'set.unlock': 'Débloquer RallyPal',
+  'set.unlockSub': '{price} une fois · {trial}',
+  'about.full': '{v} · complète'
 }

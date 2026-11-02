@@ -1,0 +1,5 @@
+Score keeper for tennis, padel, pickleball, table tennis, squash and badminton, plus padel Americano rounds. A key or a tap on your half of the screen scores the point; RallyPal follows the serve and the side, also in doubles, calls set, break and match points and vibrates on games and sets. Heart rate, summary after every match, history on the watch and phone, stats, optional Strava and Intervals.icu sync.
+
+3 free matches, then a one-time $2.99 unlock via KiezelPay: the watch shows a code, pay at kzl.io/code. No subscription.
+
+Created by Pavle (pavlemarinkovic.com)

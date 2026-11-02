@@ -4,6 +4,10 @@
 // connections, whose keys never leave the phone, and About). Everything is saved at once, with no Save
 // button; the watch takes it on its next sync and the newer change wins (shared/settings.js).
 // Zepp has no separate screens here, so whatever opens, opens in place under what was tapped.
+// Until the app is unlocked a card at the top of Setups, Stats and Settings says how many free matches are
+// left and how to unlock (shared/licence.js): the trial plays the six setups with the official rules, in
+// singles or doubles; rule variants, own setups, names, Stats, Strava and Intervals.icu show a padlock.
+// After the trial every setting but the language is read-only; the history stays.
 
 import { SPORTS, OPTIONS, DOUBLES, defaultRules, sanitizeRules, sanitizeDoubles } from '../shared/rules'
 import { MAX_SETUPS, newSetupId, clone } from '../shared/schema'
@@ -13,6 +17,7 @@ import { flowMarks } from '../shared/match'
 import { clock, hm, timeOfDay, dayLabel, prettyScore, percent, resultOf } from '../shared/format'
 import { VERSION, AUTHOR, AUTHOR_SITE, AUTHOR_URL, SUPPORT_EMAIL, feedbackMail } from '../shared/about'
 import { t, setLang, LANGS, LANG_NAMES } from '../shared/i18n'
+import { trialOf, canEdit, FREE_MATCHES, PRICE, PAY_URL, RESTORE_URL } from '../shared/licence'
 import { TEXT } from './text'
 import { MARKERS } from './markers'
 import { gettext } from 'i18n'
@@ -200,6 +205,24 @@ function marker(sport, size) {
   ])
 }
 
+// a setting that is part of the full version: its value in gray and a padlock, nothing to change
+function lockedLine(text, value) {
+  return block([row([label(text), txt(value === undefined ? '' : String(value), 14, GRAY, { flex: 'none' }), txt('🔒', 13, GRAY, { marginLeft: '8px', flex: 'none' })],
+    { justifyContent: 'space-between', minHeight: '36px' })])
+}
+
+// A sentence with {url} in it: the address is a link (a long press opens it on an iPhone)
+function linked(sentence, url, size, color) {
+  const style = { fontSize: `${size}px`, color, lineHeight: `${size + 6}px` }
+  const parts = String(sentence).split('{url}')
+  const out = []
+  parts.forEach((x, i) => {
+    if (x) out.push(Text({ style }, x))
+    if (i < parts.length - 1) out.push(Link({ source: `https://${url}` }, [Text({ style: { ...style, color: PURPLE, fontWeight: 'bold', textDecoration: 'underline' } }, url)]))
+  })
+  return View({}, out)
+}
+
 function chip(symbol, symbolColor, text) {
   return row([
     symbol ? txt(symbol, 12, symbolColor, { marginRight: '4px' }) : null,
@@ -314,7 +337,36 @@ AppSettingsPage({
     const tabs = View({ style: { display: 'flex', flexDirection: 'row', background: '#e3e3e8', borderRadius: '20px', padding: '3px', margin: '4px 0 6px' } },
       ['setups', 'history', 'stats', 'settings'].map((k) => this.tabButton(k, tab)))
     const body = tab === 'history' ? this.history() : tab === 'stats' ? this.stats() : tab === 'settings' ? this.settings() : this.setups()
-    return View({ style: { padding: '12px 14px 40px', background: '#f2f2f7' } }, [tabs, ...body].filter(Boolean))
+    // the trial card heads Setups, Stats and Settings (History works the same in the trial)
+    return View({ style: { padding: '12px 14px 40px', background: '#f2f2f7' } }, [tabs, tab !== 'history' ? this.trialCard() : null, ...body].filter(Boolean))
+  },
+
+  // ---- trial -------------------------------------------------------------------------------------
+
+  // { licensed, used, code } as the side service last heard it from the watch and KiezelPay
+  trial() {
+    return trialOf(readJson(this.storage(), 'licence', {}))
+  },
+
+  trialCard() {
+    const tr = this.trial()
+    if (tr.licensed) return null
+    const code = (readJson(this.storage(), 'licence', {}) || {}).code
+    const step = (n, x) => row([txt(`${n}.`, 14, INK, { fontWeight: 'bold', width: '20px', minWidth: '20px' }),
+      typeof x === 'string' ? txt(x, 14, INK, { lineHeight: '20px', flex: 1 }) : View({ style: { flex: 1 } }, [x])],
+      { alignItems: 'flex-start', padding: '3px 0' })
+    return View({ style: { background: 'white', borderRadius: '14px', padding: '14px 16px 10px', margin: '6px 0 4px', border: `2px solid ${LIME}` } }, [
+      col([
+        txt(tr.locked ? p('pay.ended') : p('pay.left', { n: tr.left, total: FREE_MATCHES }), 17, INK, { fontWeight: 'bold', lineHeight: '22px' }),
+        txt(tr.locked ? p('pay.lockedBody') : p('pay.basics'), 13, GRAY, { lineHeight: '18px', marginTop: '4px' }),
+        txt(p('pay.offer', { price: PRICE }), 14, INK, { lineHeight: '20px', marginTop: '10px', marginBottom: '6px' })
+      ]),
+      step(1, p('pay.step1', { unlock: t('set.unlock') })),
+      step(2, linked(code ? p('pay.step2code', { code }) : p('pay.step2'), PAY_URL, 14, INK)),
+      step(3, p('pay.step3')),
+      View({ style: { marginTop: '6px' } }, [linked(p('pay.restore'), RESTORE_URL, 12, GRAY)]),
+      note(p('link.hold'))
+    ])
   },
 
   storage() {
@@ -354,8 +406,10 @@ AppSettingsPage({
   setups() {
     const list = this.values().setups
     const open = this.storage().getItem('uiSetup') || ''
-    const out = [header(p('setups.head')), View({ style: { padding: '0 6px 10px' } }, [txt(p('setups.note'), 13, GRAY, { lineHeight: '18px' })])]
+    const full = this.trial().licensed
+    const out = [header(p('setups.head')), View({ style: { padding: '0 6px 10px' } }, [txt(full ? p('setups.note') : p('pay.setups'), 13, GRAY, { lineHeight: '18px' })])]
     list.forEach((s, i) => out.push(this.setupCard(s, i, list, open === s.id)))
+    if (!full) return out
     if (list.length < MAX_SETUPS) out.push(button(p('setup.add'), () => this.addSetup(), 'dark'))
     else out.push(note(pn('setup.max', MAX_SETUPS)))
     return out
@@ -395,7 +449,9 @@ AppSettingsPage({
     this.ui('uiSetup', '')
   },
 
-  setupCard(s, i, list, isOpen) {
+  setupCard(s0, i, list, isOpen) {
+    // in the trial a setup plays the official rules without names: that is what it shows
+    const s = this.trial().licensed ? s0 : { ...s0, rules: defaultRules(s0.sport), name: '', opponent: '', partner: '' }
     const head = View({
       style: { display: 'flex', flexDirection: 'row', alignItems: 'center', padding: '13px 0' },
       onClick: () => {
@@ -411,7 +467,28 @@ AppSettingsPage({
       ], { flex: 1, minWidth: 0, marginLeft: '12px' }),
       txt(isOpen ? '▴' : '▾', 14, GRAY, { marginLeft: '10px', flex: 'none' })
     ])
-    return card([head, isOpen ? this.setupEditor(s, i, list) : null], isOpen ? { border: `2px solid ${LIME}` } : null)
+    return card([head, isOpen ? (this.trial().licensed ? this.setupEditor(s, i, list) : this.trialEditor(s)) : null],
+      isOpen ? { border: `2px solid ${LIME}` } : null)
+  },
+
+  // A setup in the trial: singles or doubles can be chosen (until the trial ends); the rules show the
+  // official ones with a padlock
+  trialEditor(s) {
+    const sport = s.sport
+    const doubles = sanitizeDoubles(sport, s.doubles)
+    const rules = defaultRules(sport)
+    const tr = this.trial()
+    const out = []
+    if (DOUBLES[sport].length > 1) {
+      const value = p(doubles ? 'setup.doubles' : 'setup.singles')
+      out.push(tr.locked
+        ? lockedLine(p('setup.players'), value)
+        : pills(p('setup.players'), DOUBLES[sport].map((d) => [d ? 'd' : 's', p(d ? 'setup.doubles' : 'setup.singles')]), doubles ? 'd' : 's',
+          (x) => this.changeSetup(s.id, { doubles: x === 'd' })))
+    }
+    ruleKeys(sport, rules).forEach((k) => out.push(lockedLine(ruleName(sport, k), optionName(sport, k, rules[k]))))
+    out.push(note(p('pay.setups')))
+    return col(out)
   },
 
   setupEditor(s, i, list) {
@@ -676,6 +753,7 @@ AppSettingsPage({
   // ---- Stats -------------------------------------------------------------------------------------
 
   stats() {
+    if (!this.trial().licensed) return [card([note(p('pay.stats'))])]
     const storage = this.storage()
     const range = storage.getItem('uiRange') || 'all'
     const now = new Date()
@@ -818,28 +896,37 @@ AppSettingsPage({
   settings() {
     const v = this.values()
     const storage = this.storage()
+    const tr = this.trial()
+    const onOff = (x) => (x ? t('on') : t('off'))
+    // a setting that can't be changed now shows its value with a padlock
+    const sw = (key, sub) => (canEdit(key, tr) ? toggle(t('set.' + key), v[key], (x) => this.set(key, x), sub) : lockedLine(t('set.' + key), onOff(v[key])))
+    const choose = (key, opts, sub) => (canEdit(key, tr)
+      ? pills(t('set.' + key), opts.map((x) => [x, t(`opt.${key}.${x}`)]), v[key], (x) => this.set(key, x), sub)
+      : lockedLine(t('set.' + key), t(`opt.${key}.${v[key]}`)))
     return [
       this.languageCard(v),
       header(p('h.vibration')),
       card([
         View({ style: { padding: '10px 0 2px' } }, [txt(p('vibe.note'), 13, GRAY, { lineHeight: '18px' })]),
-        toggle(t('set.vibePoint'), v.vibePoint, (x) => this.set('vibePoint', x)),
-        toggle(t('set.vibeGame'), v.vibeGame, (x) => this.set('vibeGame', x)),
-        toggle(t('set.vibeSet'), v.vibeSet, (x) => this.set('vibeSet', x)),
-        toggle(t('set.vibeMatch'), v.vibeMatch, (x) => this.set('vibeMatch', x))
+        sw('vibePoint'),
+        sw('vibeGame'),
+        sw('vibeSet'),
+        sw('vibeMatch')
       ]),
       header(p('h.screen')),
       card([
-        pills(t('set.serveDisplay'), ['full', 'team'].map((x) => [x, t('opt.serveDisplay.' + x)]), v.serveDisplay, (x) => this.set('serveDisplay', x)),
-        toggle(t('set.labels'), v.labels, (x) => this.set('labels', x), p('labels.sub')),
-        pills(t('set.screen'), ['wrist', 'always'].map((x) => [x, t('opt.screen.' + x)]), v.screen, (x) => this.set('screen', x), p('screen.note'))
+        choose('serveDisplay', ['full', 'team']),
+        sw('labels', p('labels.sub')),
+        choose('screen', ['wrist', 'always'], p('screen.note'))
       ]),
       header(p('h.names')),
-      card([input(p('myName'), v.myName, p('myName.hint', { you: t('team.you') }), (x) => this.set('myName', x))]),
+      card([tr.licensed
+        ? input(p('myName'), v.myName, p('myName.hint', { you: t('team.you') }), (x) => this.set('myName', x))
+        : lockedLine(p('myName'), p('pay.full'))]),
       header(p('h.strava')),
-      card(this.strava(storage)),
+      card(tr.licensed ? this.strava(storage) : [note(p('pay.strava'))]),
       header(p('h.ivl')),
-      card(this.intervals(storage)),
+      card(tr.licensed ? this.intervals(storage) : [note(p('pay.ivl'))]),
       header(p('h.feedback')),
       card(this.feedback()),
       header(p('h.about')),
@@ -1018,7 +1105,7 @@ AppSettingsPage({
     const last = Number(storage.getItem('lastSync') || 0)
     const small = { fontSize: '13px', color: GRAY, lineHeight: '18px' }
     return [
-      View({ style: { padding: '12px 0 4px' } }, [txt(p('about.version', { v: VERSION }), 15, INK, { fontWeight: 'bold' })]),
+      View({ style: { padding: '12px 0 4px' } }, [txt(p(this.trial().licensed ? 'about.versionFull' : 'about.version', { v: VERSION }), 15, INK, { fontWeight: 'bold' })]),
       note(last ? p('about.synced', { when: `${dayLabel(last, Date.now())} ${timeOfDay(last)}` }) : p('about.notSynced')),
       View({ style: { padding: '0 0 12px' } }, [
         Text({ style: small }, `${t('about.by', { name: AUTHOR })} (`),

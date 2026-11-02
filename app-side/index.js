@@ -1,4 +1,5 @@
-// Side service in the Zepp phone app. The watch talks to it with SYNC and RESTORE (utils/sync.js); the
+// Side service in the Zepp phone app. The watch talks to it with SYNC, RESTORE (utils/sync.js) and LICENCE
+// (the unlock screen, utils/licence.js); the
 // settings page asks it, through settings storage, to check the Strava and Intervals.icu connections.
 // Matches go to Strava and Intervals.icu after the watch has its answer (core.sendOutbox).
 
@@ -23,10 +24,11 @@ function wait(ms) {
 
 const core = createCore(settingsLib, null, { http, wait })
 
-// Sends what waits; a Strava upload still being processed is asked about again a little later
-function send(round) {
+// Sends what waits; a Strava upload still being processed is asked about again a little later.
+// force: Retry now on the settings page, which also tries the matches that failed several times.
+function send(round, force) {
   const n = round || 0
-  return core.sendOutbox(5).then((r) => {
+  return core.sendOutbox(5, force).then((r) => {
     if (r && r.waiting && n < 3) return wait(20000).then(() => send(n + 1))
     return r
   })
@@ -42,7 +44,7 @@ function runCommand(value) {
   settingsLib.setItem('cmd', '')
   if (cmd.do === 'intervalsCheck') return core.intervalsCheck()
   if (cmd.do === 'stravaCheck') return core.stravaCheck()
-  if (cmd.do === 'retry') return send()
+  if (cmd.do === 'retry') return send(0, true)
   return Promise.resolve()
 }
 
@@ -58,6 +60,7 @@ AppSideService(
           send()
         }).catch(fail)
       } else if (req.method === 'RESTORE') core.restore(req.params).then((r) => res(null, r)).catch(fail)
+      else if (req.method === 'LICENCE') core.licence(req.params).then((r) => res(null, r)).catch(fail)
       else res('unknown method')
     },
 

@@ -184,6 +184,8 @@ class Watch {
     if (!this.phoneOn) throw new Error('no phone')
     if (req.method === 'SYNC') return this.phoneCore.sync(req.params)
     if (req.method === 'RESTORE') return this.phoneCore.restore(req.params)
+    // KiezelPay as the phone would hear it: a payment code until this.paid
+    if (req.method === 'LICENCE') return Promise.resolve(this.paid ? { licensed: true, code: '' } : { licensed: false, code: '482913' })
     throw new Error('unknown ' + req.method)
   }
 
@@ -448,8 +450,10 @@ function setups() {
   ]
 }
 
+// the walk-through shows the full version; the free trial has a walk of its own (trialWalk)
 function seed(w, withHistory) {
   w.files['settings.json'] = JSON.stringify({ values: { setups: setups() }, stamps: {} })
+  w.files['meta.json'] = JSON.stringify({ licensed: true })
   if (!withHistory) return
   const list = setups()
   const by = (id) => list.filter((x) => x.id === id)[0]
@@ -463,7 +467,7 @@ function seed(w, withHistory) {
     S.playedMatch(by('bo5'), T0 - 22 * DAY, { want: 0, p: 0.5, seed: 3 })
   ]
   w.files['history.json'] = JSON.stringify(hist.sort((a, b) => b.start - a.start))
-  w.files['meta.json'] = JSON.stringify({ restoredAt: T0 - 30 * DAY, bgAsked: T0 - 30 * DAY })
+  w.files['meta.json'] = JSON.stringify({ restoredAt: T0 - 30 * DAY, bgAsked: T0 - 30 * DAY, licensed: true })
   w.bgPermission = true
   return hist
 }
@@ -756,6 +760,49 @@ async function walk(device, lang) {
   return w
 }
 
+// The free trial: the free matches line, the setups with the official rules and no names, Settings with
+// "Unlock RallyPal", UNLOCK after the third match, the unlock screen with its code, and the thank-you
+async function trialWalk(device, lang) {
+  S.setLang(lang)
+  const w = new Watch(device, T0, lang)
+  w.files['settings.json'] = JSON.stringify({ values: { setups: setups() }, stamps: {} })
+  w.files['meta.json'] = JSON.stringify({ restoredAt: T0 - DAY, bgAsked: T0 - DAY, trialIds: ['m1'] })
+  w.bgPermission = true
+  w.open('index')
+  if (!w.shows(tt('trial.left', { n: 2 }))) throw new Error(w.where() + ' no free matches line')
+  w.shot('Start, free trial')
+  await w.tapImg('caret.png')
+  w.shot('Match setups, free trial')
+  if (w.shows('Marko')) throw new Error(w.where() + ' names show in the trial')
+  await w.swipeBack()
+  await w.tapImg('settings.png')
+  w.shot('Settings, free trial')
+  await w.tap(tt('set.unlock'))
+  if (w.name !== 'unlock') throw new Error(w.where() + ' "Unlock RallyPal" did not open the unlock screen')
+  // the phone's answer with the code
+  await w.settle()
+  w.shot('Unlock, code')
+  if (!w.shows('482913')) throw new Error(w.where() + ' no payment code')
+  qrOnScreen(w, (c) => c === 'https://kzl.io/code')
+  await w.swipeBack()
+  if (w.name !== 'settings') throw new Error(w.where() + ' BACK from the unlock screen')
+  // the free matches are used up: UNLOCK in NEW MATCH's place, settings read-only
+  w.files['meta.json'] = JSON.stringify({ restoredAt: T0 - DAY, bgAsked: T0 - DAY, trialIds: ['m1', 'm2', 'm3'] })
+  w.open('index')
+  w.shot('Start, trial ended')
+  if (!w.shows(tt('home.unlock'))) throw new Error(w.where() + ' no UNLOCK after the trial')
+  await w.tap(tt('home.unlock'))
+  if (w.name !== 'unlock') throw new Error(w.where() + ' UNLOCK did not open the unlock screen')
+  await w.settle()
+  w.paid = true
+  await w.advance(9)
+  w.shot('Unlocked')
+  if (!w.shows(tt('unlock.done'))) throw new Error(w.where() + ' no thank-you after paying')
+  await w.advance(3)
+  if (w.name !== 'index' || w.shows(tt('home.unlock'))) throw new Error(w.where() + ' still locked after paying')
+  return w
+}
+
 async function main() {
   fs.mkdirSync(OUT, { recursive: true })
   await loadLib()
@@ -768,6 +815,8 @@ async function main() {
       try {
         const w = await walk(d, lang)
         shots.push(...w.shots)
+        const tw = await trialWalk(d, lang)
+        shots.push(...tw.shots)
       } catch (e) {
         failed++
         console.error(`${d.name} ${lang}: FAILED`, e.stack || e)

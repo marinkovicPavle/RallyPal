@@ -3,13 +3,16 @@ import assert from 'node:assert/strict'
 import {
   SPORTS, OPTIONS, DOUBLES, defaultRules, sanitizeRules, sanitizeDoubles, isOfficial, paramsOf, modelOf
 } from '../../shared/rules'
-import { newMatch, addPoint, setServer, endMatch, undo, view, scoreText, duration, flow, pointPreview, flowMarks } from '../../shared/match'
+import { newMatch, addPoint, setServer, endMatch, undo, view, scoreText, duration, flow, pointPreview, flowMarks, idle } from '../../shared/match'
 import { LANGS, langOfZepp, setLang, t } from '../../shared/i18n'
 import { TEXT } from '../../setting/text'
 import { DEFAULT_SETUPS, MAX_SETUPS, defaults, sanitize, sanitizeSetups, findSetup } from '../../shared/schema'
 import { normalize, setValue, merge } from '../../shared/settings'
 import { setupTitle, fittedTitle, setupExtra, matchNames, teamName, partnerName } from '../../shared/setups'
-import { addHr, mergeHr, hrStats, makeRecord, matchOf, wonCount } from '../../shared/record'
+import { addHr, mergeHr, hrStats, makeRecord, matchOf, wonCount, restoreFrom, RESTORE_AGAIN_MS } from '../../shared/record'
+import { trialOf, canEdit, counts, playable, trialLine, FREE_MATCHES, MIN_MATCH_SEC } from '../../shared/licence'
+import { devHash, matchHash } from '../../shared/trialhash'
+import { createLicence } from '../../app-side/licence'
 import { cardView, lastLine } from '../../shared/card'
 import { clock, hm, prettyScore, dayLabel, percent, resultOf } from '../../shared/format'
 import { keyRows, detailRows, resultLine } from '../../shared/stats'
@@ -817,6 +820,15 @@ function randomMatch(sport, rules, doubles, r, opts) {
         assert.equal(v.server !== v0.server, n1 % 2 === 1, 'tie-break serve order')
       }
     }
+    // table tennis doubles, deciding game: at 5 (10) the receivers change their order, so the next turn of
+    // the receiving pair breaks the alternation; checked by its own test
+    if (doubles && P.model === 'tt' && v.won[0] === P.win - 1 && v.won[1] === P.win - 1) {
+      const half = P.to === 21 ? 10 : 5
+      if (Math.max(v.points[0], v.points[1]) === half && Math.min(v.points[0], v.points[1]) < half) {
+        lastTurn[0] = null
+        lastTurn[1] = null
+      }
+    }
     // in doubles each team's serve turns alternate its players
     if (doubles && !manual && !v.done && ['tennis', 'tt', 'total'].includes(P.model)) {
       const turnStart = v.points[0] + v.points[1] === 0 || v.server !== v0.server
@@ -1011,9 +1023,12 @@ function finished(sport, seq, o = {}) {
   const m = mk(sport, o.rules, o)
   m.title = 'T'
   m.names = { me: '', opponent: o.opponent || '', partner: '' }
-  m.hr = Array.from({ length: 1500 }, (_, i) => [i * 5, 100 + (i % 50)])
-  play(m, seq)
+  // a rally every 20 seconds, so the match is long enough to count and go to Strava
+  ;[...seq].forEach((ch, i) => addPoint(m, ch === '1' ? 1 : 0, T0 + (i + 1) * 20000))
   if (o.end) endMatch(m, T0 + 3600000)
+  // heart rate through the match (makeRecord drops what comes after its end)
+  const end = duration(m, 0, true)
+  m.hr = Array.from({ length: 1500 }, (_, i) => [(i * end) / 1500, 100 + (i % 50)])
   return makeRecord(m, T0 + 3600000)
 }
 
@@ -1209,8 +1224,9 @@ function fakeNet(routes) {
   }
 }
 
+// the full version (only it sends to Strava and Intervals.icu)
 function phone(net, extra) {
-  const store = { stravaClientId: '123', stravaClientSecret: 'shh', ...(extra || {}) }
+  const store = { stravaClientId: '123', stravaClientSecret: 'shh', licence: JSON.stringify({ licensed: true }), ...(extra || {}) }
   const storage = { getItem: (k) => store[k], setItem: (k, v) => (store[k] = v) }
   return { store, core: createCore(storage, () => Date.UTC(2026, 9, 21, 18, 0), net) }
 }
@@ -1358,6 +1374,312 @@ test('intervals: a match goes as a file with heart rate, then gets its sport, ti
     assert.deepEqual([put.type, put.name], ['TableTennis', 'Table tennis · won 11–0 11–0 11–0 · vs Nikola'])
     assert.equal(core.history()[0].sync.intervalsId, 'i9')
     assert.equal(JSON.parse(store.status).intervals.key, 'conn.sent')
+  })
+})
+
+// ---------------------------------------------------------------- fixes before the store (ROAST items 6, 8, 9, 10, 13)
+
+test('serve: rally scoring in doubles, opponents first: the player you named serves your first serve (ROAST 10)', () => {
+  for (const sport of ['badminton', 'pickleball']) {
+    const rules = sport === 'pickleball' ? { scoring: 'rally' } : undefined
+    const a = mk(sport, rules, { doubles: true, first: 1, mine: 1 })
+    play(a, '110')
+    assert.equal(srv(view(a)), '01L', sport + ': partner, from the left at 1')
+    play(a, '0')
+    assert.equal(srv(view(a)), '01R', sport + ': the same server moves right')
+    const b = mk(sport, rules, { doubles: true, first: 1, mine: 0 })
+    play(b, '0')
+    assert.equal(srv(view(b)), '00L', sport + ': you')
+    // serving first, nothing changes: the named player serves from the right
+    const c = mk(sport, rules, { doubles: true, first: 0, mine: 1 })
+    assert.equal(srv(view(c)), '01R')
+  }
+})
+
+test('serve: pickleball, server changed by hand to the other side starts from the right (ROAST 10)', () => {
+  const m = mk('pickleball', undefined, { doubles: true, first: 0 })
+  // side out to them, they score (their server moves left), lose one (second server), side out back to you
+  play(m, '1100')
+  assert.equal(view(m).server, 0)
+  setServer(m, 1, 0, T0 + 999000)
+  const v = view(m)
+  assert.equal(srv(v), '10R')
+  assert.ok(v.call.endsWith('-1'), 'first server of the side: ' + v.call)
+  setServer(m, 0, 1, T0 + 999000)
+  assert.equal(srv(view(m)), '01R', 'you named the partner')
+})
+
+test('serve: table tennis doubles, deciding game: the receivers change order at 5 (ROAST 10)', () => {
+  const m = mk('tabletennis', undefined, { doubles: true })
+  play(m, rep('0', 11) + rep('1', 11) + rep('0', 11) + rep('1', 11))
+  const turn = () => {
+    const v = view(m)
+    return `${v.server}${v.player}`
+  }
+  const cycle = []
+  for (let i = 0; i < 4; i++) {
+    cycle.push(turn())
+    play(m, '01')
+  }
+  assert.deepEqual(view(m).points, [4, 4])
+  assert.equal(turn(), cycle[0])
+  play(m, '0')
+  assert.equal(turn(), cycle[0], 'the server finishes the turn')
+  const recv = 1 - Number(cycle[0][0])
+  const swapped = cycle.map((x) => (Number(x[0]) === recv ? `${recv}${1 - Number(x[1])}` : x))
+  play(m, '1')
+  const after = [turn()]
+  play(m, '01')
+  after.push(turn())
+  play(m, '01')
+  after.push(turn())
+  assert.deepEqual(after, swapped.slice(1, 4))
+  // not in the other games
+  const n = mk('tabletennis', undefined, { doubles: true })
+  const order = []
+  for (let i = 0; i < 5; i++) {
+    order.push(`${view(n).server}${view(n).player}`)
+    play(n, '01')
+  }
+  assert.equal(order[4], order[0])
+})
+
+test('record: a match left open and ended the next day ends a minute after its last point (ROAST 6)', () => {
+  const m = mk('tennis')
+  ;[0, 1, 0].forEach((w, i) => addPoint(m, w, T0 + (i + 1) * 30000))
+  assert.equal(idle(m, T0 + 90000 + 60000), false)
+  assert.equal(idle(m, T0 + 90000 + 1801000), true)
+  m.hr = [[30, 120], [90, 130], [5000, 90], [57000, 80]]
+  endMatch(m, T0 + 16 * 3600000)
+  const rec = makeRecord(m, m.start + duration(m, 0, true) * 1000)
+  assert.equal(rec.dur, 150)
+  assert.equal(rec.end, T0 + 150000)
+  assert.deepEqual(rec.curve.map((x) => x[0]), [30, 90])
+  assert.equal(rec.hrMax, 130)
+  // ended a few minutes after the last point: the real time stays
+  const n = mk('tennis')
+  addPoint(n, 0, T0 + 30000)
+  endMatch(n, T0 + 330000)
+  assert.equal(duration(n, 0, true), 330)
+})
+
+test('restore: the watch asks for what it is missing and goes on where it stopped (ROAST 8)', () => {
+  const now = T0
+  assert.equal(restoreFrom({}, 61, 1, now, 200), 0, 'never restored, even with a match of its own')
+  assert.equal(restoreFrom({ restoredAt: now - 1000, restorePage: 2 }, 100, 40, now, 200), 2, 'cut short: goes on')
+  assert.equal(restoreFrom({ restoredAt: now - 1000 }, 61, 1, now, 200), -1, 'just restored: not again at once')
+  assert.equal(restoreFrom({ restoredAt: now - RESTORE_AGAIN_MS }, 61, 1, now, 200), 0, 'still missing later: asks again')
+  assert.equal(restoreFrom({ restoredAt: now - RESTORE_AGAIN_MS }, 900, 200, now, 200), -1, 'has all it keeps')
+})
+
+test('send: a short match and a match in the trial stay off Strava (ROAST 13)', () => {
+  const net = fakeNet({ 'GET /api/v3/athlete/activities': { status: 200, data: [] } })
+  const short = { ...finished('tennis', rep('0', 12)), id: 's' }
+  assert.ok(short.dur < MIN_MATCH_SEC)
+  const a = phone(net, { stravaAuth: AUTH })
+  const long = finished('tennis', rep('0', 48))
+  const trialPhone = phone(net, { stravaAuth: AUTH, licence: '' })
+  return a.core.sync({ settings: normalize(null), items: [{ op: 'upsert', id: 's', rec: short }] })
+    .then(() => assert.deepEqual(JSON.parse(a.store.outbox || '[]'), [], 'short: not queued'))
+    .then(() => trialPhone.core.sync({ settings: normalize(null), items: [{ op: 'upsert', id: long.id, rec: long }] }))
+    .then(() => trialPhone.core.sendOutbox())
+    .then((r) => {
+      assert.deepEqual(r, { sent: 0, failed: 0, waiting: 0 })
+      assert.equal(net.calls.length, 0)
+    })
+})
+
+test('send: Intervals.icu keeps the activity id at once, so a failed update never adds a second one (ROAST 9)', () => {
+  let putOk = false
+  const net = fakeNet({
+    'POST /api/v1/athlete/i42/activities': { status: 200, data: { id: 'i9' } },
+    'PUT /api/v1/activity/i9': () => (putOk ? { status: 200, data: { id: 'i9' } } : { status: 503, data: null })
+  })
+  const { core } = phone(net, { stravaClientId: '', intervalsKey: 'k', intervalsAthlete: 'i42' })
+  const rec = finished('squash', rep('0', 33))
+  return core.sync({ settings: normalize(null), items: [{ op: 'upsert', id: rec.id, rec }] }).then(() => core.sendOutbox()).then((r) => {
+    assert.equal(r.failed, 1)
+    assert.equal(core.history()[0].sync.intervalsId, 'i9')
+    putOk = true
+    return core.sendOutbox()
+  }).then((r) => {
+    assert.equal(r.sent, 1)
+    assert.equal(net.calls.filter((c) => c.method === 'POST').length, 1, 'one activity')
+  })
+})
+
+test('send: a match deleted on the watch (UNDO) and saved again updates what was sent (ROAST 9)', () => {
+  const net = fakeNet({
+    'POST /api/v1/athlete/i42/activities': { status: 200, data: { id: 'i9' } },
+    'PUT /api/v1/activity/i9': { status: 200, data: { id: 'i9' } }
+  })
+  const { core } = phone(net, { stravaClientId: '', intervalsKey: 'k', intervalsAthlete: 'i42' })
+  const rec = finished('squash', rep('0', 33))
+  const again = { ...rec, score: '11-0 11-0 10-0', sync: {} }
+  return core.sync({ settings: normalize(null), items: [{ op: 'upsert', id: rec.id, rec }] }).then(() => core.sendOutbox())
+    .then(() => core.sync({ settings: normalize(null), items: [{ op: 'delete', id: rec.id }] }))
+    .then(() => core.sync({ settings: normalize(null), items: [{ op: 'upsert', id: rec.id, rec: again }] }))
+    .then(() => core.sendOutbox())
+    .then(() => {
+      assert.equal(net.calls.filter((c) => c.method === 'POST').length, 1, 'no second activity')
+      assert.equal(net.calls.filter((c) => c.method === 'PUT').length, 2, 'the first one is updated')
+    })
+})
+
+test('send: matches that keep failing wait for Retry now and never hold up newer ones (ROAST 9)', () => {
+  const net = fakeNet({
+    'GET /api/v3/athlete/activities': { status: 200, data: [] },
+    'POST /api/v3/activities': (req) => (JSON.parse(req.body).start_date_local.endsWith('00') && JSON.parse(req.body).name.indexOf('Squash') === 0
+      ? { status: 201, data: { id: 5 } } : { status: 500, data: null }),
+    'PUT /api/v3/activities/5': { status: 200, data: { id: 5 } }
+  })
+  const { store, core } = phone(net, { stravaAuth: AUTH })
+  const bad = [1, 2, 3, 4, 5, 6].map((i) => ({ ...finished('tennis', rep('0', 48)), id: 'b' + i, start: T0 - i * 86400000, curve: [] }))
+  const good = { ...finished('squash', rep('0', 33)), id: 'g', curve: [] }
+  return core.sync({ settings: normalize(null), items: bad.map((rec) => ({ op: 'upsert', id: rec.id, rec })) })
+    .then(() => core.sync({ settings: normalize(null), items: [{ op: 'upsert', id: 'g', rec: good }] }))
+    .then(() => core.sendOutbox(5))
+    .then(() => core.sendOutbox(5))
+    .then(() => {
+      assert.ok(core.history().filter((x) => x.id === 'g')[0].sync.stravaId, 'the newer match went')
+      for (let i = 0; i < 6; i++) store.outbox = JSON.stringify(JSON.parse(store.outbox).map((x) => ({ ...x, tries: 5 })))
+      const before = net.calls.length
+      return core.sendOutbox(5).then(() => {
+        assert.equal(net.calls.length, before, 'failed five times: waits for Retry now')
+        return core.sendOutbox(5, true)
+      }).then(() => assert.ok(net.calls.length > before, 'Retry now tries them'))
+    })
+})
+
+test('strava: Connect again after Strava took the access back uses the new sign-in (ROAST 9)', () => {
+  const net = fakeNet({
+    'POST /oauth/token': (req) => (JSON.parse(req.body).grant_type === 'authorization_code'
+      ? { status: 200, data: { access_token: 'new', refresh_token: 'r2', expires_at: 2e9 } } : { status: 400, data: {} }),
+    'GET /api/v3/athlete': (req) => (req.headers.Authorization === 'Bearer new' ? { status: 200, data: { firstname: 'Pavle' } } : { status: 401, data: {} })
+  })
+  const { store, core } = phone(net, { stravaAuth: AUTH, stravaCode: 'fresh' })
+  return core.stravaCheck().then((ok) => {
+    assert.equal(ok, true)
+    assert.equal(store.stravaCode, '')
+    assert.equal(JSON.parse(store.stravaAuth).access_token, 'new')
+  })
+})
+
+test('strava: a sign-in made offline is kept for the next try (ROAST 9)', () => {
+  const offline = { http: () => Promise.reject(new Error('no internet')), wait: () => Promise.resolve() }
+  const { store, core } = phone(offline, { stravaCode: 'c0de' })
+  return core.stravaCheck().then((ok) => {
+    assert.equal(ok, false)
+    assert.equal(store.stravaCode, 'c0de')
+    assert.equal(JSON.parse(store.status).strava.key, 'err.offline')
+  })
+})
+
+// ---------------------------------------------------------------- free trial and KiezelPay (phase 5)
+
+test('trial: 3 free matches of 5 minutes or more, then locked; what the trial can change', () => {
+  setLang('en')
+  assert.equal(FREE_MATCHES, 3)
+  const tr0 = trialOf({})
+  assert.deepEqual(tr0, { licensed: false, used: 0, left: 3, locked: false })
+  assert.equal(trialLine(tr0), 'Free matches left: 3')
+  const tr3 = trialOf({ trialIds: ['a', 'b', 'c'] })
+  assert.equal(tr3.locked, true)
+  assert.equal(trialLine(tr3), 'Free trial ended')
+  assert.equal(trialOf({ used: 2 }).left, 1)
+  assert.equal(trialOf({ licensed: true, trialIds: ['a', 'b', 'c'] }).locked, false)
+  assert.equal(counts({ dur: 299 }), false)
+  assert.equal(counts({ dur: 300 }), true)
+  assert.equal(canEdit('vibePoint', tr0), true)
+  assert.equal(canEdit('myName', tr0), false, 'names are the full version')
+  assert.equal(canEdit('setups', tr0), false)
+  assert.equal(canEdit('vibePoint', tr3), false, 'read-only after the trial')
+  assert.equal(canEdit('lang', tr3), true)
+  assert.equal(canEdit('myName', trialOf({ licensed: true })), true)
+  const s = { id: 'x', sport: 'padel', rules: { ...defaultRules('padel'), deuce: 'noad' }, doubles: true, name: 'Friday', opponent: 'Luka', partner: 'Ana' }
+  assert.deepEqual(playable(s, tr0), { ...s, rules: defaultRules('padel'), name: '', opponent: '', partner: '' })
+  assert.equal(playable(s, trialOf({ licensed: true })), s)
+})
+
+function licenceIo(routes, extra) {
+  const store = { ...(extra || {}) }
+  const net = fakeNet(routes)
+  const io = {
+    get: (k) => store[k] || '',
+    set: (k, v) => (store[k] = v),
+    readJson: (k, f) => (store[k] ? JSON.parse(store[k]) : f),
+    writeJson: (k, v) => (store[k] = JSON.stringify(v)),
+    http: net.http,
+    now: () => T0
+  }
+  return { store, net, io }
+}
+
+test('trial service: the phone sends hashes only and gets back what the watch used before a reinstall', () => {
+  const key = 'u:WATCH1'
+  const old = matchHash(key, 'm1')
+  const { store, net, io } = licenceIo({ 'POST /v1/trial': (req) => {
+    const b = JSON.parse(req.body)
+    return { status: 200, data: { ids: [old].concat(b.ids).slice(0, 3) } }
+  } })
+  const lic = createLicence(io, 'APP')
+  return lic.trial({ key, ids: ['m2'] }).then((r) => {
+    const body = JSON.parse(net.calls[0].body)
+    assert.equal(body.dev, devHash(key))
+    assert.equal(body.dev.length, 64)
+    assert.deepEqual(body.ids, [matchHash(key, 'm2')])
+    assert.ok(net.calls[0].body.indexOf('WATCH1') < 0, 'the watch ID never leaves the phone')
+    assert.deepEqual(r.ids, ['s:' + old, 'm2'])
+    assert.equal(JSON.parse(store.licence).used, 2)
+    assert.notEqual(devHash(key), devHash('u:WATCH2'))
+  })
+})
+
+test('trial service: offline the watch keeps its own count', () => {
+  const { io } = licenceIo({})
+  io.http = () => Promise.reject(new Error('offline'))
+  return createLicence(io, 'APP').trial({ key: 'u:W', ids: ['m1'] }).then((r) => assert.equal(r, null))
+})
+
+test('kiezelpay: a payment code, then licensed; a licensed watch unlocks a new phone', () => {
+  let paid = false
+  const { store, net, io } = licenceIo({ 'GET /api/v3/status': () => ({ status: 200, data: paid ? { status: 'licensed' } : { status: 'unlicensed', paymentCode: 482913 } }) })
+  const lic = createLicence(io, '999')
+  return lic.licence({ buy: true, used: 3, device: 8519936 }).then((r) => {
+    assert.deepEqual(r, { licensed: false, code: '482913' })
+    const url = net.calls[0].url
+    assert.ok(url.indexOf('appid=999') > 0 && url.indexOf('platform=zepp') > 0 && url.indexOf('test=false') > 0)
+    paid = true
+    return lic.licence({ buy: true })
+  }).then((r) => {
+    assert.equal(r.licensed, true)
+    assert.equal(lic.licensed(), true)
+    // a new phone: the watch says it is unlocked
+    const fresh = licenceIo({})
+    const lic2 = createLicence(fresh.io, '999')
+    lic2.fromWatch({ licensed: true })
+    assert.equal(lic2.licensed(), true)
+    assert.equal(JSON.parse(store.licence).code, '')
+  })
+})
+
+test('kiezelpay: without the app ID the unlock screen hears that KiezelPay cannot be reached', () => {
+  const { io, net } = licenceIo({})
+  return createLicence(io, '').licence({ buy: true }).then(
+    () => assert.fail('should not resolve'),
+    (e) => {
+      assert.ok(/app ID/.test(e.message))
+      assert.equal(net.calls.length, 0)
+    }
+  )
+})
+
+test('sync: the answer carries the trial, the licence and how many matches the phone keeps', () => {
+  const { core } = phone(fakeNet({ 'POST /v1/trial': { status: 200, data: { ids: [] } } }), { licence: '' })
+  return core.sync({ settings: normalize(null), items: [], trial: { key: 'u:W', ids: [] }, used: 1 }).then((res) => {
+    assert.equal(res.total, 0)
+    assert.deepEqual(res.trial, { ids: [] })
+    assert.deepEqual(res.licence, { licensed: false })
   })
 })
 

@@ -16,6 +16,9 @@ const ALIVE_MS = 20000
 const FLUSH_EVERY_MS = 30000
 const SAMPLE_GAP_S = 5
 const KEPT = 1200
+// no point for this long: the match was left open, the heart rate is no longer recorded (shared/match.js
+// IDLE_HR_S, ROAST item 6); the match page starts the service again when the match goes on
+const IDLE_HR_S = 1800
 
 function read(name) {
   try {
@@ -90,9 +93,21 @@ function flush(now, force) {
   }
 }
 
+function lastSec(m) {
+  const ev = Array.isArray(m.ev) ? m.ev : []
+  const e = ev[ev.length - 1]
+  return e ? Number(e[e.length - 1]) || 0 : 0
+}
+
 function record(now) {
   if (!match || pageOn(now)) return
   const t = Math.max(0, Math.round((now - match.start) / 1000))
+  if (t - lastSec(match) > IDLE_HR_S) {
+    flush(now, true)
+    stopAll()
+    exit()
+    return
+  }
   if (!(bpm > 30 && bpm < 240)) return
   const last = bg.hr[bg.hr.length - 1]
   if (!last || t - last[0] >= SAMPLE_GAP_S) {

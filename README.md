@@ -6,9 +6,9 @@ Aplikacija za Zepp OS satove (Amazfit) koja vodi rezultat u šest reket sportova
 
 | Putanja | Šta je |
 |---|---|
-| `app.json`, `app.js` | Opis aplikacije za Zepp (appId 1099458 je privremen, pravi stiže u fazi 5) |
+| `app.json`, `app.js` | Opis aplikacije za Zepp (appId 1099458 je privremen, pravi se upisuje pre store build-a, vidi [docs/SUBMIT.md](docs/SUBMIT.md)) |
 | `page/` | Ekrani na satu: početni, meč, kraj meča, istorija, podešavanja |
-| `shared/` | Zajednički kod za sat i telefon: pravila i bodovanje (`rules.js`, `match.js`), statistika, jezici (`lang/`), Strava i Intervals podaci (`integrations.js`) |
+| `shared/` | Zajednički kod za sat i telefon: pravila i bodovanje (`rules.js`, `match.js`), statistika, jezici (`lang/`), Strava i Intervals podaci (`integrations.js`), besplatna proba i KiezelPay (`licence.js`) |
 | `utils/` | Sat: tasteri, čuvanje, sinhronizacija sa telefonom, pozadinski puls |
 | `app-service/` | Pozadinski servis za puls dok je ekran ugašen |
 | `app-widget/` | Kartica-prečica u listi kartica |
@@ -17,15 +17,16 @@ Aplikacija za Zepp OS satove (Amazfit) koja vodi rezultat u šest reket sportova
 | `assets/` | Slike za okrugle (`common.r`) i četvrtaste (`common.s`) satove |
 | `.dev/test/` | Automatski testovi (bodovanje svih sportova, Strava i Intervals tok) |
 | `.dev/tools/sim/` | Simulator rasporeda za sve veličine ekrana i jezike, i crtanje stranice na telefonu |
-| `docs/` | Sav dogovor, plan, izmene posle proba, roast i slike koje su odobrene |
+| `docs/` | Sav dogovor, plan, izmene posle proba, roast i slike koje su odobrene; `docs/store/` i `docs/SUBMIT.md` za Zepp store |
 | `arhiva/rallypal-proba/` | Stari probni ekran u Zepp treningu (više se ne koristi, odluka 26) |
 
 ## Dokumentacija i napredak
 
 - [docs/STATUS.md](docs/STATUS.md): gde smo sada, šta je urađeno i šta čeka. Počni odavde.
+- [docs/SUBMIT.md](docs/SUBMIT.md): predaja u Zepp store i KiezelPay, korak po korak.
 - [docs/plan-izrade.md](docs/plan-izrade.md): faze izrade 1 do 7.
 - [docs/dogovor.md](docs/dogovor.md): sve odluke sa vremenom, izvor istine.
-- [docs/ROAST.md](docs/ROAST.md): spisak poboljšanja pre izlaska (22. 10. 2026), čeka izbor brojeva.
+- [docs/ROAST.md](docs/ROAST.md): spisak poboljšanja pre izlaska (22. 10. 2026); 1, 2, 6, 8, 9, 10 i 13 urađeni 2. 11. (odluke 47 i 48).
 - [docs/telefon-elementi.md](docs/telefon-elementi.md), [docs/izmene-posle-probe.md](docs/izmene-posle-probe.md), [docs/izmene-posle-telefona.md](docs/izmene-posle-telefona.md): elementi i izmene po probama.
 - [docs/ideje.md](docs/ideje.md): početni spisak ideja za drugu Zepp aplikaciju.
 - Slike (`docs/*.png`) i skripte koje ih crtaju (`docs/*.py`).
@@ -38,10 +39,11 @@ Na Macu, sa Zepp CLI (`zeus`) i satom u developer modu:
 cd ~/Claude/rallypal && npm install && zeus preview
 ```
 
-Za store fajl (ZAB):
+Za store fajl (ZAB) zeus ne sme da vidi `docs/` i `arhiva/`, pa se aplikacija prvo kopira u poseban folder:
 
 ```
-cd ~/Claude/rallypal && zeus build
+bash .dev/tools/build-copy.sh ~/Claude/rallypal-store
+cd ~/Claude/rallypal-store && npm install && zeus build
 ```
 
 ## Provere
@@ -52,6 +54,6 @@ npm test
 npm run sim
 ```
 
-`npm test` pušta 70 testova, među njima nekoliko hiljada nasumično odigranih mečeva. `npm run sim` crta ekrane sata na 7 veličina i 7 jezika i javlja preklapanja i odsečen tekst.
+`npm test` pušta 87 testova, među njima nekoliko hiljada nasumično odigranih mečeva. `npm run sim` crta ekrane sata na 7 veličina i 7 jezika i javlja preklapanja i odsečen tekst.
 
 Ključevi i lozinke (Strava Client Secret, Intervals API ključ) se nikad ne upisuju u kod ni u ovaj repo; korisnik ih unosi u podešavanjima na telefonu.

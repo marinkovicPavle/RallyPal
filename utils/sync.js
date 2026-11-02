@@ -1,16 +1,24 @@
-// Talking to the phone (side service), as SaunaPal. Every sync sends the watch settings and the matches
-// waiting in the outbox; the phone merges settings (newer change wins), keeps its own copy of the history
-// and answers with the merged settings (setups made on the phone arrive this way) and the changes made to
-// the history on the phone (names, deletes). A new or reset watch asks for its history back (restore), a
-// page at a time. The watch's own language goes along, for Automatic on the phone page.
+// Talking to the phone (side service), as SaunaPal. Every sync sends the watch settings, the matches
+// waiting in the outbox and the free trial (the matches it counted, and whether it is unlocked); the phone
+// merges settings (newer change wins), keeps its own copy of the history and answers with the merged
+// settings (setups made on the phone arrive this way), the changes made to the history on the phone
+// (names, deletes), how many matches it keeps, and what it knows about the trial and the purchase.
+// The watch asks for the matches it is missing (a new or reset watch, or one that played before the
+// phone was connected), a page at a time, and goes on where it stopped if a restore was cut short.
+// The watch's own language goes along, for Automatic on the phone page.
 
 import { loadSettings, replaceSettings, loadOutbox, getMatch, doneOutbox, markSynced, loadHistory, mergeRestored,
-  loadMeta, saveMeta, applyPhoneEdits } from './data'
+  loadMeta, saveMeta, applyPhoneEdits, HISTORY_KEPT } from './data'
+import { trialParams, licenceParams, applyTrial } from './licence'
 import { watchLang } from './lang'
 import { merge } from '../shared/settings'
+import { restoreFrom } from '../shared/record'
 
 const BATCH = 3
 const TIMEOUT = 30000
+// the phone sends 20 matches a page; the watch keeps HISTORY_KEPT
+const RESTORE_PAGE = 20
+const RESTORE_PAGES = Math.ceil(HISTORY_KEPT / RESTORE_PAGE)
 
 // An error on the phone comes back as an answer with an error in it
 function request(page, method, params) {
@@ -35,12 +43,13 @@ function applyDone(res, results) {
   })
 }
 
-// opts: { restore: ask for the history when this watch has none, onlyId: send this match first }
-// Resolves { ok, results, restored, settingsChanged, historyChanged } and never rejects.
+// opts: { restore: ask for missing matches, onlyId: send this match first }
+// Resolves { ok, results, restored, settingsChanged, historyChanged, trialChanged } and never rejects.
 export function syncWithPhone(page, opts) {
   const o = opts || {}
   const results = []
-  const out = { ok: false, results, restored: 0, settingsChanged: false, historyChanged: false }
+  const out = { ok: false, results, restored: 0, settingsChanged: false, historyChanged: false, trialChanged: false }
+  let total = 0
 
   function round(first) {
     let box = loadOutbox()
@@ -54,10 +63,15 @@ export function syncWithPhone(page, opts) {
       if (x.op === 'upsert' && !getMatch(x.id)) doneOutbox(x.id, x.op)
     })
     if (!first && !items.length) return Promise.resolve(out)
-    return request(page, 'SYNC', { settings: loadSettings(), items, lang: watchLang() }).then((res) => {
+    const params = { settings: loadSettings(), items, lang: watchLang(), trial: trialParams() }
+    const lp = licenceParams()
+    Object.keys(lp).forEach((k) => (params[k] = lp[k]))
+    return request(page, 'SYNC', params).then((res) => {
       out.ok = true
       if (applySettings(res)) out.settingsChanged = true
       if (applyPhoneEdits(res && res.edits)) out.historyChanged = true
+      if (applyTrial(res)) out.trialChanged = true
+      if (res && res.total !== undefined) total = Number(res.total) || 0
       applyDone(res, results)
       if (items.length && loadOutbox().length && res && res.done && res.done.length) return round(false)
       return out
@@ -67,18 +81,22 @@ export function syncWithPhone(page, opts) {
   function restore(pageNo) {
     return request(page, 'RESTORE', { page: pageNo }).then((res) => {
       out.restored += mergeRestored((res && res.list) || [])
-      if (res && res.more && pageNo < 40) return restore(pageNo + 1)
-      saveMeta({ restoredAt: Date.now() })
+      const next = pageNo + 1
+      if (res && res.more && next < RESTORE_PAGES) {
+        // where to go on if this restore is cut short (the start screen was left)
+        saveMeta({ restorePage: next })
+        return restore(next)
+      }
+      saveMeta({ restoredAt: Date.now(), restorePage: 0 })
       return out
     })
   }
 
   return round(true)
     .then(() => {
-      const meta = loadMeta()
-      if (o.restore && !meta.restoredAt && loadHistory().length === 0) return restore(0)
-      if (o.restore && !meta.restoredAt) saveMeta({ restoredAt: Date.now() })
-      return out
+      if (!o.restore) return out
+      const from = restoreFrom(loadMeta(), total, loadHistory().length, Date.now(), HISTORY_KEPT)
+      return from >= 0 ? restore(from) : out
     })
     .catch((e) => {
       out.error = String((e && e.message) || e || 'no phone')

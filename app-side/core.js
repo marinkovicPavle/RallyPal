@@ -15,8 +15,11 @@
 //              settings page; key and vars are a phone text (setting/text.js), so it shows in the page's language
 //   stravaClientId, stravaClientSecret, stravaAuth (JSON tokens), stravaCode, stravaSend ('false' = off)
 //   intervalsKey, intervalsAthlete
+//   sentGone   { id: { sync, at } } what was sent of a match the watch deleted (UNDO on the summary), so the
+//              same match coming back updates its Strava and Intervals.icu activities instead of adding new ones
+//   licence, trialSeen, KPAY_ACCOUNTTOKEN, kpayDevice, trialPhoneId  the free trial and the purchase (licence.js)
 // A match's rec.sync keeps what was sent: stravaId, stravaUpload (still processing), stravaSig,
-// intervalsId, intervalsSig. The free trial (phase 5) adds its own keys.
+// intervalsId, intervalsSig.
 //
 // net: { http(req) -> Promise<{ status, data }>, wait(ms) -> Promise }, the Zepp fetch (app-side/index.js)
 
@@ -27,13 +30,20 @@ import { SPORT_TYPE, FALLBACK_TYPE, title, description, tcx, multipart, localIso
 import { prettyScore } from '../shared/format'
 import { sportName } from '../shared/setups'
 import { base64Encode } from './base64'
+import { createLicence } from './licence'
+import { counts } from '../shared/licence'
 
 export const PHONE_HISTORY_MAX = 1000
 // heart rate curves (for the chart of a match) stay on the newest matches only
 const PHONE_CURVES_KEPT = 200
 const RESTORE_PAGE = 20
 const EDITS_KEPT_MS = 60 * 86400000
-const OUTBOX_MAX = 50
+// matches waiting for Strava and Intervals.icu; tiny entries, so plenty of room (none dropped in practice)
+const OUTBOX_MAX = 500
+// a match that failed this many times waits for Retry now, so it can't hold up newer ones (ROAST item 9)
+const AUTO_TRIES = 5
+const GONE_KEPT_MS = 14 * 86400000
+const GONE_MAX = 50
 
 const STRAVA = 'https://www.strava.com/api/v3'
 const STRAVA_TOKEN = 'https://www.strava.com/oauth/token'
@@ -66,6 +76,11 @@ export function createCore(storage, clock, net) {
     storage.setItem(key, JSON.stringify(value))
   }
 
+  const lic = createLicence(
+    { get, set: (k, v) => storage.setItem(k, v), readJson, writeJson, http: (req) => http(req), now },
+    net && net.kpayAppId
+  )
+
   function history() {
     const h = readJson('history', [])
     return Array.isArray(h) ? h : []
@@ -85,9 +100,27 @@ export function createCore(storage, clock, net) {
     return Array.isArray(e) ? e.filter((x) => x && x.id && now() - (Number(x.at) || 0) < EDITS_KEPT_MS) : []
   }
 
+  // What was sent of matches the watch deleted, for a while
+  function gone() {
+    const g = readJson('sentGone', {})
+    return g && typeof g === 'object' && !Array.isArray(g) ? g : {}
+  }
+
+  function keepGone(rec) {
+    const s = rec && rec.sync
+    if (!s || !(s.stravaId || s.intervalsId || s.stravaUpload)) return
+    const g = gone()
+    g[rec.id] = { sync: s, at: now() }
+    const ids = Object.keys(g).filter((id) => now() - (Number(g[id].at) || 0) < GONE_KEPT_MS)
+    ids.sort((a, b) => g[b].at - g[a].at)
+    const out = {}
+    ids.slice(0, GONE_MAX).forEach((id) => (out[id] = g[id]))
+    writeJson('sentGone', out)
+  }
+
   function applyItem(item, phoneEdits) {
     const list = history()
-    const prev = list.filter((x) => x.id === item.id)[0] || null
+    const prev = list.filter((x) => x.id === item.id)[0] || (gone()[item.id] ? { sync: gone()[item.id].sync } : null)
     const mine = phoneEdits.filter((e) => e.id === item.id)
     // a match deleted on the phone stays deleted; names changed on the phone win over the watch's
     if (item.op === 'upsert' && mine.some((e) => e.op === 'delete')) return { id: item.id, op: 'upsert', sync: null }
@@ -98,10 +131,14 @@ export function createCore(storage, clock, net) {
       // the watch keeps curves on its newest matches only; the phone keeps the one it has
       if (prev && prev.curve && !rec.curve) rec.curve = prev.curve
       saveHistory(list.filter((x) => x.id !== item.id).concat([rec]))
-      if (services().any) queue(rec.id)
+      // only the full version sends, and only a match of 5 minutes or more (ROAST item 13)
+      if (services().any && lic.licensed() && counts(rec)) queue(rec.id)
       return { id: item.id, op: 'upsert', sync: rec.sync }
     }
-    if (item.op === 'delete') saveHistory(list.filter((x) => x.id !== item.id))
+    if (item.op === 'delete') {
+      keepGone(list.filter((x) => x.id === item.id)[0])
+      saveHistory(list.filter((x) => x.id !== item.id))
+    }
     return { id: item.id, op: item.op, sync: null }
   }
 
@@ -118,18 +155,24 @@ export function createCore(storage, clock, net) {
   // The watch sends its settings and up to a few queued matches (upserts and deletes); the answer has
   // the merged settings (setups made on the phone reach the watch this way) and what was done. Strava and
   // Intervals.icu come after the answer (sendOutbox), so a slow upload never holds up the watch.
+  // The trial goes along: the matches the watch counted ({ key, ids }), how many it used and whether it
+  // is unlocked; the answer has what the trial service and KiezelPay say, and how many matches the phone
+  // keeps (a watch with fewer asks for the rest, utils/sync.js).
   function sync(params) {
     const p = params || {}
     const phone = readJson('settings', null)
     const m = merge(p.settings, phone)
     if (m.phoneChanged || !phone) writeJson('settings', m.merged)
+    lic.fromWatch({ licensed: p.licensed, used: p.used })
     const items = Array.isArray(p.items) ? p.items : []
     const pending = edits()
     const done = items.filter((x) => x && x.id).map((x) => applyItem(x, pending))
     if (p.lang) storage.setItem('watchLang', String(p.lang))
     writeJson('phoneEdits', pending)
     storage.setItem('lastSync', String(now()))
-    return Promise.resolve({ settings: m.merged, done, edits: pending })
+    return Promise.all([lic.trial(p.trial), lic.onSync()]).then(([trial, licence]) => ({
+      settings: m.merged, done, edits: pending, total: history().length, trial, licence
+    }))
   }
 
   // A new or reset watch asks for its history back, a page at a time (without the curves)
@@ -252,6 +295,8 @@ export function createCore(storage, clock, net) {
     return made.then((r) => {
       const id = r && (r.id || (r.activities && r.activities[0] && r.activities[0].id))
       if (!id) throw keyError('Intervals.icu did not return the activity', 'err.noActivity', { what: 'Intervals.icu' })
+      // kept at once: if the next step fails, the next try updates this activity instead of adding another
+      storeSync(rec.id, { intervalsId: String(id) })
       return update(id)
     })
   }
@@ -293,17 +338,27 @@ export function createCore(storage, clock, net) {
   }
 
   // A valid access token: refreshed when it is about to run out; the code from the sign-in is traded once
+  // A new sign-in (Connect again after Strava took the access back) comes first; its code is kept when
+  // the phone is offline, and dropped once used or refused (ROAST item 9)
   function stravaToken() {
     const app = stravaApp()
     if (!app) return Promise.reject(keyError('Strava app not set up', 'conn.stravaNeed'))
+    const code = get('stravaCode')
+    if (code) {
+      return tokenRequest(app, { grant_type: 'authorization_code', code }).then(
+        (token) => {
+          storage.setItem('stravaCode', '')
+          return token
+        },
+        (e) => {
+          if (e && e.key !== 'err.offline') storage.setItem('stravaCode', '')
+          throw e
+        }
+      )
+    }
     const auth = readJson('stravaAuth', null)
     if (auth && auth.access_token && auth.expires_at > now() / 1000 + 120) return Promise.resolve(auth.access_token)
     if (auth && auth.refresh_token) return tokenRequest(app, { grant_type: 'refresh_token', refresh_token: auth.refresh_token })
-    const code = get('stravaCode')
-    if (code) {
-      storage.setItem('stravaCode', '')
-      return tokenRequest(app, { grant_type: 'authorization_code', code })
-    }
     return Promise.reject(keyError('Strava not connected', 'err.notConnected'))
   }
 
@@ -420,7 +475,12 @@ export function createCore(storage, clock, net) {
             // a file Strava can't read still gives the match, without its heart rate
             .catch((e) => (e.key === 'err.upload' || e.status === 400 || e.status === 422 ? stravaManual(token, rec) : Promise.reject(e)))
         })
-      return made.then((r) => (r.id ? stravaUpdate(token, r.id, rec, sig) : { stravaUpload: String(r.upload), waiting: true }))
+      return made.then((r) => {
+        if (!r.id) return { stravaUpload: String(r.upload), waiting: true }
+        // kept at once, so a failed update can't lead to a second activity
+        storeSync(rec.id, { stravaId: String(r.id), stravaUpload: '' })
+        return stravaUpdate(token, r.id, rec, sig)
+      })
     })
   }
 
@@ -449,10 +509,16 @@ export function createCore(storage, clock, net) {
 
   // Sends up to max matches from the outbox, one after another (only one run at a time). Resolves
   // { sent, failed, waiting }; a match that failed stays for the next sync or Retry now.
-  function sendOutbox(max) {
+  // force (Retry now): also the matches that failed AUTO_TRIES times. The ones tried least go first, so
+  // matches that keep failing never hold up newer ones. Only the full version sends.
+  function sendOutbox(max, force) {
     if (running) return running
+    if (!lic.licensed()) return Promise.resolve({ sent: 0, failed: 0, waiting: 0 })
     applyLanguage()
-    const todo = outbox().slice(0, max || 5)
+    const todo = outbox()
+      .filter((x) => force || (x.tries || 0) < AUTO_TRIES)
+      .sort((a, b) => (a.tries || 0) - (b.tries || 0) || a.at - b.at)
+      .slice(0, max || 5)
     const res = { sent: 0, failed: 0, waiting: 0 }
     running = todo
       .reduce((chain, item) => chain.then(() => sendOne(item, res)), Promise.resolve())
@@ -529,7 +595,7 @@ export function createCore(storage, clock, net) {
   }
 
   return { sync, restore, setSetting, history, readJson, writeJson, intervalsCheck, stravaCheck, stravaDisconnect, sendOutbox,
-    resendEdited, failedCount, services }
+    resendEdited, failedCount, services, licence: lic.licence, licensed: lic.licensed }
 }
 
 function httpError(what, status, data) {

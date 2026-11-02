@@ -34,7 +34,8 @@
             "page/match",
             "page/summary",
             "page/history",
-            "page/settings"
+            "page/settings",
+            "page/unlock"
           ]
         },
         "app-widget": {

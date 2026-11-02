@@ -1,0 +1,3 @@
+Score keeper for racket sports. On the start screen pick a setup (sport and rules), tap NEW MATCH and choose who serves first. In a match the upper half of the screen or the upper key gives the opponent a point, the lower half or the lower key gives you one; UNDO and MENU are in the middle. The match ends by the rules or from the menu, and a summary follows. History and settings are on the watch and on the app's settings page in the Zepp app.
+
+Payment: free download with 3 free matches (a match counts from 5 minutes). Then a one-time $2.99 unlock through KiezelPay: the watch shows a code, the user pays at kzl.io/code and the watch unlocks by itself. Strava and Intervals.icu sync are optional.

@@ -3,6 +3,8 @@
 // serves first (drawing 3), in doubles also who of your team, and starts the match.
 // A match being played always comes first. NEW MATCH on the shortcut card opens this page with { go: 1 },
 // REMATCH on the summary with { rematch: setup id }: both go straight to "Who serves first?".
+// In the free trial a line under the name says how many free matches are left, and the setups play the
+// official rules without names (shared/licence.js); after the trial UNLOCK takes NEW MATCH's place.
 
 import { BasePage } from '@zeppos/zml/base-page'
 import {
@@ -14,10 +16,12 @@ import { createNav, goPage, quit, parseParams } from '../utils/nav'
 import { settingsValues, loadHistory, loadMeta, saveMeta, loadActive, saveActive } from '../utils/data'
 import { askBgPermission, startMonitor } from '../utils/bg'
 import { syncWithPhone } from '../utils/sync'
+import { trial } from '../utils/licence'
 import { newMatch } from '../shared/match'
 import { findSetup } from '../shared/schema'
 import { setupTitle, fittedTitle, setupExtra, matchNames, teamName, partnerName } from '../shared/setups'
 import { lastLine } from '../shared/card'
+import { playable, trialLine } from '../shared/licence'
 import { t } from '../shared/i18n'
 
 Page(
@@ -37,12 +41,14 @@ Page(
       const v = settingsValues()
       const meta = loadMeta()
       st.setupId = findSetup(v, st.params.rematch || meta.lastSetup).id
+      // after the free trial NEW MATCH on the card and REMATCH open the unlock screen
+      if ((st.params.go || st.params.rematch) && trial().locked) return goPage('unlock')
       nav.show((n) => this.home(n))
       if (st.params.go || st.params.rematch) nav.push((n) => this.whoServes(n))
       syncWithPhone(this, { restore: true }).then((res) => {
         // the answer can come after this page was left; it must not draw over the next one
         if (!res.ok || st.starting || st.gone) return
-        if ((res.restored || res.settingsChanged || res.historyChanged) && nav.depth() === 1) {
+        if ((res.restored || res.settingsChanged || res.historyChanged || res.trialChanged) && nav.depth() === 1) {
           st.setupId = findSetup(settingsValues(), st.setupId).id
           nav.show((n) => this.home(n))
         }
@@ -54,8 +60,19 @@ Page(
       if (this.state.nav) this.state.nav.destroy()
     },
 
+    // the chosen setup as it plays: in the trial with the official rules and no names
     setup() {
-      return findSetup(settingsValues(), this.state.setupId)
+      return playable(findSetup(settingsValues(), this.state.setupId), trial())
+    },
+
+    // the settings, without the wearer's name in the trial (names are the full version)
+    values() {
+      const v = settingsValues()
+      return trial().licensed ? v : { ...v, myName: '' }
+    },
+
+    unlock() {
+      goPage('unlock')
     },
 
     home(nav) {
@@ -64,17 +81,18 @@ Page(
       const last = loadHistory()[0]
       screen()
       at(MX, R ? 72 : 50, 300, 'RallyPal', R ? 36 : 34, C.lime)
-      // the free matches line of the trial (phase 5) goes at y 110 / 86
+      const tr = trial()
+      if (!tr.licensed) at(MX, R ? 112 : 88, R ? 300 : 340, trialLine(tr), R ? 19 : 18, tr.locked ? C.red : C.lgray, 'mm', { min: 14 })
       this.chip(R ? 169 : 142, setup, () => nav.push((n) => this.setupList(n)))
       if (last) {
         let line = lastLine(last)
         if (last.names && last.names.opponent) line += ' · ' + last.names.opponent
         at(MX, R ? 228 : 200, R ? 380 : 350, line, R ? 19 : 17, C.gray, 'mm', { min: 14 })
       }
-      const go = () => nav.push((n) => this.whoServes(n))
+      const go = tr.locked ? () => this.unlock() : () => nav.push((n) => this.whoServes(n))
       const history = () => goPage('history')
       const settings = () => goPage('settings')
-      limeButton(around(MX, R ? 296 : 266, R ? 270 : 260, R ? 70 : 66), t('home.newMatch'), R ? 30 : 28, go)
+      limeButton(around(MX, R ? 296 : 266, R ? 270 : 260, R ? 70 : 66), tr.locked ? t('home.unlock') : t('home.newMatch'), R ? 30 : 28, go)
       const iy = R ? 384 : 356
       iconButton(around(MX - 44, iy, 64, 64), 'history', history, C.purple)
       iconButton(around(MX + 44, iy, 64, 64), 'settings', settings)
@@ -120,7 +138,8 @@ Page(
     setupList(nav) {
       const R = ROUND
       const v = settingsValues()
-      const list = v.setups
+      const tr = trial()
+      const list = v.setups.map((s) => playable(s, tr))
       screen()
       heading(t('setups.title'), C.white, R ? 62 : 30, 26)
       let y = R ? 114 : 82
@@ -171,8 +190,7 @@ Page(
 
     whoServes(nav) {
       const setup = this.setup()
-      const v = settingsValues()
-      const names = matchNames(setup, v)
+      const names = matchNames(setup, this.values())
       const pick = (first) => {
         if (setup.doubles) nav.push((n) => this.whoOfUs(n, first))
         else this.begin({ first, mine: 0 })
@@ -194,7 +212,7 @@ Page(
     // doubles: who of your team serves your team's first serve
     whoOfUs(nav, first) {
       const setup = this.setup()
-      const names = matchNames(setup, settingsValues())
+      const names = matchNames(setup, this.values())
       return question(
         {
           top: this.topLine(setup),
@@ -212,8 +230,9 @@ Page(
     begin(choice) {
       const st = this.state
       if (st.starting) return
+      if (trial().locked) return this.unlock()
       st.starting = true
-      const v = settingsValues()
+      const v = this.values()
       const setup = this.setup()
       const now = Date.now()
       const m = newMatch(setup, choice, now)

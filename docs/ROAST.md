@@ -1,5 +1,7 @@
 # RallyPal: roast pre izlaska (22. 10. 2026)
 
+**2. 11. 2026:** urađeno 1 (proba i naplata, čeka pravi appId i KiezelPay App ID), 2 (paket za store, [SUBMIT.md](SUBMIT.md)), 6, 8, 9, 10 i 13 (odluke 47 i 48 u [dogovor.md](dogovor.md)). Za 4 (Strava) 1.0 ostaje po mogućnosti a. Ostalo čeka.
+
 Ti biraš brojeve, a ništa ne pravim dok ne izabereš. Za svaku stavku piše popravka, zašto je važna, koliki je posao, da li ide u besplatnu probu ili u punu verziju i šta nije provereno. Za sve što menja izgled prvo dobijaš elemente, pa sliku, pa tek onda pravim, kao do sada.
 
 Kako sam gledao: pročitao sam ceo kod na satu i telefonu i pustio probne skripte na pravom kodu. Greške u odeljku C su sve ponovljene skriptom, osim onih gde piše da sam ih zaključio iz koda. Uz to sam pogledao slične aplikacije na Zepp-u, Apple Watch-u, Wear OS-u i Garminu i šta im korisnici zameraju. Bodovanje svih šest sportova je prošlo: tie-break, super tie-break, zlatni poen, star point, servis u dublu, pikleball 0-0-2, stoni tenis od 10:10, skvoš i badminton do 30.

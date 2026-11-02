@@ -1,0 +1,1 @@
+No third-party SDK is bundled. The purchase status is checked over KiezelPay's web API.

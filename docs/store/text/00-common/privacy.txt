@@ -1,0 +1,24 @@
+RallyPal Privacy Statement (November 2026)
+
+RallyPal keeps score for racket sports on Zepp OS watches. It is made by Pavle Marinković (pavlemarinkovic.com).
+
+What the app uses
+- Heart rate: shown during a match and saved with it.
+- Watch model and device ID: for the free trial.
+
+Your matches, with the names you type for players, are stored on your watch and backed up to the Zepp app on your phone. They are not sent to us.
+
+Free trial
+So that reinstalling does not reset the 3 free matches, your phone sends our trial service (on Cloudflare) a one-way hash of your watch ID and short hashes of the counted matches. These cannot be turned back into your watch ID or match times, and the service never gets your name or account. Watches without a device ID (older than Zepp OS 4.2) use a random ID made by your phone instead.
+
+Purchase
+The full version is sold through KiezelPay (kiezelpay.com). Your phone sends KiezelPay a random account number and your watch model to check the purchase. You pay on KiezelPay's website under their privacy policy; RallyPal never sees payment details.
+
+Optional connections
+If you connect Strava or Intervals.icu, your matches (time, sport, score, statistics, heart rate and the names you typed) go directly from your phone to that service with the keys you entered. The keys stay on your phone and are never sent to us.
+
+No ads, no analytics, no tracking. We don't sell or share your data.
+
+Uninstalling RallyPal removes your matches from the watch and phone. Trial hashes stay on the trial service but cannot be linked to you.
+
+Contact: pavle019@live.com

@@ -182,6 +182,23 @@ const en = {
   'about.version': 'Version {v}',
   'about.synced': 'Last synced with the watch: {when}',
   'about.notSynced': 'Not synced with the watch yet. Open RallyPal on the watch.',
+  // free trial and unlock (shared/licence.js)
+  'pay.left': 'Free trial: {n} of {total} matches left',
+  'pay.ended': 'Free trial ended',
+  'pay.lockedBody': 'New matches and settings are locked. Your history stays, here and on the watch.',
+  'pay.basics': 'The trial plays the six setups with the official rules, in singles or doubles. What has 🔒 is part of the full version.',
+  'pay.offer': 'Unlock everything for {price}, once: your own setups and rule variants, player names, Stats, Strava and Intervals.icu.',
+  'pay.step1': 'On the watch: the gear button on the start screen, then “{unlock}”.',
+  'pay.step2': 'Go to {url} and enter the code the watch shows.',
+  'pay.step2code': 'Go to {url} and enter the code the watch shows ({code}).',
+  'pay.step3': 'Pay there. The watch unlocks by itself.',
+  'pay.restore': 'Paid before, on another watch or before a reset? Go to {url}.',
+  'pay.full': 'Full version',
+  'pay.setups': 'Rule variants, your own setups and names are part of the full version.',
+  'pay.stats': 'Stats are part of the full version: results by sport and by opponent, your form and points won on your serve.',
+  'pay.strava': 'Sending matches to Strava is part of the full version.',
+  'pay.ivl': 'Sending matches to Intervals.icu is part of the full version.',
+  'about.versionFull': 'Version {v} · full version',
   months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 }
 
@@ -356,6 +373,23 @@ const es = {
   'about.version': 'Versión {v}',
   'about.synced': 'Última sincronización con el reloj: {when}',
   'about.notSynced': 'Aún no sincronizado con el reloj. Abre RallyPal en el reloj.',
+  // free trial and unlock (shared/licence.js)
+  'pay.left': 'Prueba gratis: quedan {n} de {total} partidos',
+  'pay.ended': 'Prueba gratis terminada',
+  'pay.lockedBody': 'Los partidos nuevos y los ajustes están bloqueados. Tu historial se queda, aquí y en el reloj.',
+  'pay.basics': 'La prueba juega los seis tipos con las reglas oficiales, en individual o dobles. Lo que tiene 🔒 es de la versión completa.',
+  'pay.offer': 'Desbloquea todo por {price}, una vez: tus propios tipos y variantes de reglas, nombres, Estadísticas, Strava e Intervals.icu.',
+  'pay.step1': 'En el reloj: el botón del engranaje en la pantalla inicial y luego “{unlock}”.',
+  'pay.step2': 'Ve a {url} e introduce el código que muestra el reloj.',
+  'pay.step2code': 'Ve a {url} e introduce el código que muestra el reloj ({code}).',
+  'pay.step3': 'Paga allí. El reloj se desbloquea solo.',
+  'pay.restore': '¿Ya pagaste, en otro reloj o antes de un reinicio? Ve a {url}.',
+  'pay.full': 'Versión completa',
+  'pay.setups': 'Las variantes de reglas, tus propios tipos y los nombres son de la versión completa.',
+  'pay.stats': 'Las estadísticas son de la versión completa: resultados por deporte y por rival, tu forma y puntos ganados con tu saque.',
+  'pay.strava': 'Enviar partidos a Strava es de la versión completa.',
+  'pay.ivl': 'Enviar partidos a Intervals.icu es de la versión completa.',
+  'about.versionFull': 'Versión {v} · versión completa',
   months: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 }
 
@@ -529,6 +563,23 @@ const it = {
   'about.version': 'Versione {v}',
   'about.synced': 'Ultima sincronizzazione con l’orologio: {when}',
   'about.notSynced': 'Non ancora sincronizzato con l’orologio. Apri RallyPal sull’orologio.',
+  // free trial and unlock (shared/licence.js)
+  'pay.left': 'Prova gratuita: {n} di {total} partite rimaste',
+  'pay.ended': 'Prova gratuita terminata',
+  'pay.lockedBody': 'Le nuove partite e le impostazioni sono bloccate. Lo storico resta, qui e sull’orologio.',
+  'pay.basics': 'La prova gioca i sei formati con le regole ufficiali, in singolo o doppio. Ciò che ha 🔒 fa parte della versione completa.',
+  'pay.offer': 'Sblocca tutto per {price}, una volta: formati e varianti di regole tuoi, nomi dei giocatori, Statistiche, Strava e Intervals.icu.',
+  'pay.step1': 'Sull’orologio: il pulsante dell’ingranaggio nella schermata iniziale, poi “{unlock}”.',
+  'pay.step2': 'Vai su {url} e inserisci il codice mostrato dall’orologio.',
+  'pay.step2code': 'Vai su {url} e inserisci il codice mostrato dall’orologio ({code}).',
+  'pay.step3': 'Paga lì. L’orologio si sblocca da solo.',
+  'pay.restore': 'Hai già pagato, su un altro orologio o prima di un reset? Vai su {url}.',
+  'pay.full': 'Versione completa',
+  'pay.setups': 'Le varianti di regole, i formati tuoi e i nomi fanno parte della versione completa.',
+  'pay.stats': 'Le statistiche fanno parte della versione completa: risultati per sport e per avversario, forma e punti vinti al servizio.',
+  'pay.strava': 'L’invio delle partite a Strava fa parte della versione completa.',
+  'pay.ivl': 'L’invio delle partite a Intervals.icu fa parte della versione completa.',
+  'about.versionFull': 'Versione {v} · versione completa',
   months: ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre']
 }
 
@@ -700,6 +751,23 @@ const de = {
   'about.version': 'Version {v}',
   'about.synced': 'Zuletzt mit der Uhr synchronisiert: {when}',
   'about.notSynced': 'Noch nicht mit der Uhr synchronisiert. Öffne RallyPal auf der Uhr.',
+  // free trial and unlock (shared/licence.js)
+  'pay.left': 'Gratis-Test: noch {n} von {total} Matches',
+  'pay.ended': 'Gratis-Test beendet',
+  'pay.lockedBody': 'Neue Matches und Einstellungen sind gesperrt. Dein Verlauf bleibt, hier und auf der Uhr.',
+  'pay.basics': 'Der Test spielt die sechs Vorlagen mit den offiziellen Regeln, im Einzel oder Doppel. Alles mit 🔒 gehört zur Vollversion.',
+  'pay.offer': 'Schalte alles für {price} frei, einmalig: eigene Vorlagen und Regelvarianten, Namen, Statistik, Strava und Intervals.icu.',
+  'pay.step1': 'Auf der Uhr: das Zahnrad auf dem Startbildschirm, dann „{unlock}“.',
+  'pay.step2': 'Öffne {url} und gib den Code ein, den die Uhr zeigt.',
+  'pay.step2code': 'Öffne {url} und gib den Code ein, den die Uhr zeigt ({code}).',
+  'pay.step3': 'Bezahle dort. Die Uhr schaltet sich selbst frei.',
+  'pay.restore': 'Schon bezahlt, auf einer anderen Uhr oder vor einem Zurücksetzen? Öffne {url}.',
+  'pay.full': 'Vollversion',
+  'pay.setups': 'Regelvarianten, eigene Vorlagen und Namen gehören zur Vollversion.',
+  'pay.stats': 'Die Statistik gehört zur Vollversion: Ergebnisse nach Sport und Gegner, deine Form und Punkte bei eigenem Aufschlag.',
+  'pay.strava': 'Matches an Strava senden gehört zur Vollversion.',
+  'pay.ivl': 'Matches an Intervals.icu senden gehört zur Vollversion.',
+  'about.versionFull': 'Version {v} · Vollversion',
   months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']
 }
 
@@ -874,6 +942,23 @@ const fr = {
   'about.version': 'Version {v}',
   'about.synced': 'Dernière synchro avec la montre : {when}',
   'about.notSynced': 'Pas encore synchronisé avec la montre. Ouvrez RallyPal sur la montre.',
+  // free trial and unlock (shared/licence.js)
+  'pay.left': 'Essai gratuit : {n} matchs sur {total} restants',
+  'pay.ended': 'Essai gratuit terminé',
+  'pay.lockedBody': 'Les nouveaux matchs et les réglages sont bloqués. Votre historique reste, ici et sur la montre.',
+  'pay.basics': 'L’essai joue les six formats avec les règles officielles, en simple ou en double. Ce qui porte 🔒 fait partie de la version complète.',
+  'pay.offer': 'Débloquez tout pour {price}, une fois : vos formats et variantes de règles, les noms, les Statistiques, Strava et Intervals.icu.',
+  'pay.step1': 'Sur la montre : le bouton engrenage de l’écran d’accueil, puis « {unlock} ».',
+  'pay.step2': 'Allez sur {url} et saisissez le code affiché par la montre.',
+  'pay.step2code': 'Allez sur {url} et saisissez le code affiché par la montre ({code}).',
+  'pay.step3': 'Payez là-bas. La montre se débloque toute seule.',
+  'pay.restore': 'Déjà payé, sur une autre montre ou avant une réinitialisation ? Allez sur {url}.',
+  'pay.full': 'Version complète',
+  'pay.setups': 'Les variantes de règles, vos propres formats et les noms font partie de la version complète.',
+  'pay.stats': 'Les statistiques font partie de la version complète : résultats par sport et par adversaire, forme et points gagnés au service.',
+  'pay.strava': 'L’envoi des matchs vers Strava fait partie de la version complète.',
+  'pay.ivl': 'L’envoi des matchs vers Intervals.icu fait partie de la version complète.',
+  'about.versionFull': 'Version {v} · version complète',
   months: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
 }
 
@@ -1048,6 +1133,23 @@ const pt = {
   'about.version': 'Versão {v}',
   'about.synced': 'Última sincronização com o relógio: {when}',
   'about.notSynced': 'Ainda não sincronizado com o relógio. Abra o RallyPal no relógio.',
+  // free trial and unlock (shared/licence.js)
+  'pay.left': 'Teste grátis: restam {n} de {total} partidas',
+  'pay.ended': 'Teste grátis encerrado',
+  'pay.lockedBody': 'Novas partidas e ajustes estão bloqueados. Seu histórico fica, aqui e no relógio.',
+  'pay.basics': 'O teste joga os seis formatos com as regras oficiais, em simples ou duplas. O que tem 🔒 faz parte da versão completa.',
+  'pay.offer': 'Desbloqueie tudo por {price}, uma vez: seus formatos e variantes de regras, nomes, Estatísticas, Strava e Intervals.icu.',
+  'pay.step1': 'No relógio: o botão de engrenagem na tela inicial e depois “{unlock}”.',
+  'pay.step2': 'Acesse {url} e digite o código que o relógio mostra.',
+  'pay.step2code': 'Acesse {url} e digite o código que o relógio mostra ({code}).',
+  'pay.step3': 'Pague lá. O relógio desbloqueia sozinho.',
+  'pay.restore': 'Já pagou, em outro relógio ou antes de um reset? Acesse {url}.',
+  'pay.full': 'Versão completa',
+  'pay.setups': 'Variantes de regras, seus próprios formatos e nomes fazem parte da versão completa.',
+  'pay.stats': 'As estatísticas fazem parte da versão completa: resultados por esporte e por adversário, sua forma e pontos ganhos no seu saque.',
+  'pay.strava': 'Enviar partidas ao Strava faz parte da versão completa.',
+  'pay.ivl': 'Enviar partidas ao Intervals.icu faz parte da versão completa.',
+  'about.versionFull': 'Versão {v} · versão completa',
   months: ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 }
 
@@ -1231,6 +1333,23 @@ const sr = {
   'about.version': 'Verzija {v}',
   'about.synced': 'Poslednja sinhronizacija sa satom: {when}',
   'about.notSynced': 'Još nije sinhronizovano sa satom. Otvori RallyPal na satu.',
+  // free trial and unlock (shared/licence.js)
+  'pay.left': 'Besplatna proba: preostalo {n} od {total} mečeva',
+  'pay.ended': 'Besplatna proba je završena',
+  'pay.lockedBody': 'Novi mečevi i podešavanja su zaključani. Istorija ostaje, ovde i na satu.',
+  'pay.basics': 'U probi se igra šest kombinacija sa zvaničnim pravilima, u singlu ili dublu. Sve sa 🔒 je deo pune verzije.',
+  'pay.offer': 'Otključaj sve za {price}, jednom: svoje kombinacije i varijante pravila, imena igrača, Statistiku, Stravu i Intervals.icu.',
+  'pay.step1': 'Na satu: dugme sa zupčanikom na početnom ekranu, pa „{unlock}“.',
+  'pay.step2': 'Idi na {url} i upiši kod koji sat pokazuje.',
+  'pay.step2code': 'Idi na {url} i upiši kod koji sat pokazuje ({code}).',
+  'pay.step3': 'Plati tamo. Sat se sam otključa.',
+  'pay.restore': 'Plaćeno ranije, na drugom satu ili pre reseta? Idi na {url}.',
+  'pay.full': 'Puna verzija',
+  'pay.setups': 'Varijante pravila, svoje kombinacije i imena su deo pune verzije.',
+  'pay.stats': 'Statistika je deo pune verzije: rezultati po sportu i po protivniku, forma i poeni osvojeni na svoj servis.',
+  'pay.strava': 'Slanje mečeva na Stravu je deo pune verzije.',
+  'pay.ivl': 'Slanje mečeva na Intervals.icu je deo pune verzije.',
+  'about.versionFull': 'Verzija {v} · puna verzija',
   months: ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar']
 }
 

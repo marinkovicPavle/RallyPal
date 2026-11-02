@@ -20,7 +20,8 @@ import { createNav, goPage, quit } from '../utils/nav'
 import { pointBuzz, stopAll } from '../utils/feedback'
 import { loadActive, saveActive, clearActive, putMatch, settingsValues, loadHr, saveHr } from '../utils/data'
 import { startMonitor, stopMonitor, markAlive, markGone, takeBg } from '../utils/bg'
-import { view, addPoint, undo, setServer, endMatch, duration, pointPreview } from '../shared/match'
+import { countMatch } from '../utils/licence'
+import { view, addPoint, undo, setServer, endMatch, duration, pointPreview, idle } from '../shared/match'
 import { makeRecord, addHr, mergeHr } from '../shared/record'
 import { teamName, partnerName } from '../shared/setups'
 import { clock } from '../shared/format'
@@ -138,7 +139,7 @@ Page({
     if (st.gone) return
     const now = Date.now()
     const sec = duration(st.m, now, false)
-    if (st.bpm) addHr({ hr: st.hr }, sec, st.bpm)
+    if (st.bpm && !idle(st.m, now)) addHr({ hr: st.hr }, sec, st.bpm)
     const L = st.live
     if (L.hr) setText(L.hr, st.bpm ? String(st.bpm) : '--')
     if (L.dur) setText(L.dur, clock(sec))
@@ -194,8 +195,10 @@ Page({
       return goPage('index')
     }
     st.m.hr = st.hr
-    const rec = makeRecord(st.m, now)
+    // the match ends at its last point (or a minute after it, when it was ended much later)
+    const rec = makeRecord(st.m, st.m.start + duration(st.m, now, true) * 1000)
     putMatch(rec)
+    countMatch(rec)
     clearActive()
     if (next === 'index') goPage('index')
     else goPage('summary', { id: rec.id, fresh: 1 })

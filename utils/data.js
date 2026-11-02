@@ -36,8 +36,10 @@ export function saveMeta(patch) {
 // ---- history ----------------------------------------------------------------------------------------
 
 export const HISTORY_KEPT = 200
-// the heart rate curve is for the phone's chart and Strava; the watch keeps it on its newest matches only
+// the heart rate curve is for the phone's chart and Strava; the watch keeps it on its newest matches, and
+// on older ones until the phone has them (ROAST item 8), up to CURVES_UNSENT matches back
 const CURVES_KEPT = 20
+const CURVES_UNSENT = 60
 
 export function loadHistory() {
   const h = readJson(FILES.history, [])
@@ -47,8 +49,12 @@ export function loadHistory() {
 function saveHistory(list) {
   list.sort((a, b) => b.start - a.start)
   const out = list.slice(0, HISTORY_KEPT)
+  const unsent = {}
+  loadOutbox().forEach((x) => {
+    if (x && x.op === 'upsert') unsent[x.id] = true
+  })
   out.forEach((x, i) => {
-    if (i >= CURVES_KEPT && x.curve) delete x.curve
+    if (x.curve && i >= CURVES_KEPT && (!unsent[x.id] || i >= CURVES_UNSENT)) delete x.curve
   })
   writeJson(FILES.history, out)
 }

@@ -1,6 +1,8 @@
 // Watch settings (approved drawing 11): the same settings as on the phone, except the setups and names,
 // which are typed on the phone. Feedback and the author's site are QR codes for the phone. Every change is saved with its time and goes to the phone on the next
-// sync; the newer change wins. Unlock (phase 5) and Strava (phase 6) get their rows later.
+// sync; the newer change wins. Strava and Intervals.icu are set up on the phone.
+// Until the app is unlocked, "Unlock RallyPal" heads the list; after the free trial every setting but the
+// language is read-only, and a tap on one opens the unlock screen.
 
 import { BasePage } from '@zeppos/zml/base-page'
 import { ROUND, C, MX, mid, at, text, qrCode, px } from '../utils/ui'
@@ -9,6 +11,8 @@ import { createNav, goPage } from '../utils/nav'
 import { preview } from '../utils/feedback'
 import { settingsValues, saveSetting } from '../utils/data'
 import { syncWithPhone } from '../utils/sync'
+import { trial } from '../utils/licence'
+import { canEdit, trialLine, PRICE } from '../shared/licence'
 import { VIBES, settingMeta } from '../shared/schema'
 import { VERSION, AUTHOR, AUTHOR_SITE, AUTHOR_URL, SUPPORT_EMAIL, feedbackMail } from '../shared/about'
 import { t, lang, LANG_NAMES } from '../shared/i18n'
@@ -42,12 +46,27 @@ Page(
       return on.length ? on.join(' · ') : t('set.vibeNone')
     },
 
+    unlock() {
+      goPage('unlock', { from: 'settings' })
+    },
+
+    // a row of a setting that can't be changed now (after the free trial) shows its value in gray and
+    // opens the unlock screen
+    guard(key, row) {
+      if (canEdit(key, trial())) return row
+      return { ...row, subColor: C.gray, onTap: () => this.unlock() }
+    },
+
     main(nav) {
       const v = settingsValues()
+      const tr = trial()
       const rows = [
-        { label: t('set.vibration'), sub: this.vibeLine(v), onTap: () => nav.push((n) => this.vibration(n)) },
-        { label: t('set.serveDisplay'), sub: this.option('serveDisplay', v.serveDisplay), onTap: () => this.pick(nav, 'serveDisplay') },
-        {
+        tr.licensed
+          ? null
+          : { label: t('set.unlock'), color: C.lime, sub: t('set.unlockSub', { price: PRICE, trial: trialLine(tr) }), subColor: C.lgray, onTap: () => this.unlock() },
+        this.guard('vibePoint', { label: t('set.vibration'), sub: this.vibeLine(v), onTap: () => nav.push((n) => this.vibration(n)) }),
+        this.guard('serveDisplay', { label: t('set.serveDisplay'), sub: this.option('serveDisplay', v.serveDisplay), onTap: () => this.pick(nav, 'serveDisplay') }),
+        this.guard('labels', {
           label: t('set.labels'),
           sub: v.labels ? t('opt.labels.on') : t('off'),
           subColor: v.labels ? C.lime : C.gray,
@@ -55,8 +74,8 @@ Page(
             saveSetting('labels', !settingsValues().labels)
             nav.redraw()
           }
-        },
-        { label: t('set.screen'), sub: this.option('screen', v.screen), onTap: () => this.pick(nav, 'screen') },
+        }),
+        this.guard('screen', { label: t('set.screen'), sub: this.option('screen', v.screen), onTap: () => this.pick(nav, 'screen') }),
         { label: t('set.language'), sub: this.langName(v.lang), onTap: () => nav.push((n) => this.language(n)) },
         { label: t('set.phone'), sub: t('set.phoneSub'), subColor: C.gray, onTap: () => nav.push((n) => this.phone(n)) },
         { label: t('set.feedback'), sub: t('set.feedbackSub'), subColor: C.gray, onTap: () => nav.push((n) => this.feedback(n)) },
@@ -130,7 +149,7 @@ Page(
     about(nav) {
       const rows = [
         { label: t('about.keys'), onTap: () => nav.push(() => keyGuide(() => nav.back())) },
-        { label: t('about.version'), value: VERSION, valueColor: C.gray },
+        { label: t('about.version'), value: trial().licensed ? t('about.full', { v: VERSION }) : VERSION, valueColor: C.gray },
         { label: t('about.by', { name: AUTHOR }), sub: AUTHOR_SITE, onTap: () => nav.push((n) => this.site(n)) }
       ]
       list({ title: t('about.title'), rows })

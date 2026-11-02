@@ -53,7 +53,10 @@ function thin(hr, max) {
 
 export function makeRecord(m, end) {
   const v = view(m)
-  const h = hrStats(m.hr)
+  const dur = duration(m, end, true)
+  // heart rate after the end (a match ended long after its last point) is not part of the match
+  const hr = (m.hr || []).filter((x) => x && x[0] <= dur + 60)
+  const h = hrStats(hr)
   return {
     v: 1,
     id: m.id,
@@ -72,11 +75,11 @@ export function makeRecord(m, end) {
     draw: v.draw,
     ended: v.ended,
     score: scoreText(v),
-    dur: duration(m, end, true),
+    dur,
     stats: v.stats,
     hrAvg: h.avg,
     hrMax: h.max,
-    curve: thin(m.hr, CURVE_MAX)
+    curve: thin(hr, CURVE_MAX)
   }
 }
 
@@ -101,4 +104,19 @@ export function matchOf(rec) {
 
 export function wonCount(history) {
   return history.filter((r) => r.winner === 0 && !r.draw).length
+}
+
+// a watch still missing matches after a whole restore asks again after this long, not on every sync
+export const RESTORE_AGAIN_MS = 6 * 3600000
+
+// Which page of the phone's history the watch asks for, or -1 for none (ROAST item 8): a restore that was
+// cut short goes on where it stopped; a watch that never restored asks once; a watch with fewer matches
+// than the phone has (up to the `kept` it keeps) asks again now and then, also when it isn't empty.
+export function restoreFrom(meta, phoneTotal, have, now, kept) {
+  const m = meta || {}
+  if (Number(m.restorePage) > 0) return Number(m.restorePage)
+  if (!m.restoredAt) return 0
+  const want = Math.min(Number(phoneTotal) || 0, kept)
+  if (want > have && now - m.restoredAt >= RESTORE_AGAIN_MS) return 0
+  return -1
 }
