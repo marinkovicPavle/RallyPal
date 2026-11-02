@@ -1,1 +1,1 @@
-Device ID (free trial count, sent only as a one-way hash).
+Device ID (free trial count, sent only as a one-way hash), age from the user profile (heart rate zones).

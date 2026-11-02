@@ -23,7 +23,8 @@ Aplikacija za Zepp OS satove (Amazfit) koja vodi rezultat u šest reket sportova
 ## Dokumentacija i napredak
 
 - [docs/STATUS.md](docs/STATUS.md): gde smo sada, šta je urađeno i šta čeka. Počni odavde.
-- [docs/SUBMIT.md](docs/SUBMIT.md): predaja u Zepp store i KiezelPay, korak po korak.
+- [docs/SUBMIT.md](docs/SUBMIT.md): predaja 1.0 u Zepp store i KiezelPay, korak po korak.
+- [docs/SUBMIT-2.0.md](docs/SUBMIT-2.0.md): predaja 2.0 (Version Upgrade) i prompt za Remote Control.
 - [docs/plan-izrade.md](docs/plan-izrade.md): faze izrade 1 do 7.
 - [docs/dogovor.md](docs/dogovor.md): sve odluke sa vremenom, izvor istine.
 - [docs/ROAST-v2.md](docs/ROAST-v2.md): roast za v2 (2. 11. 2026), čeka izbor brojeva. v1 je predat iz grane `claude/rallypal-1.0-store`.
@@ -55,6 +56,6 @@ npm test
 npm run sim
 ```
 
-`npm test` pušta 87 testova, među njima nekoliko hiljada nasumično odigranih mečeva. `npm run sim` crta ekrane sata na 7 veličina i 7 jezika i javlja preklapanja i odsečen tekst.
+`npm test` pušta 93 testa, među njima nekoliko hiljada nasumično odigranih mečeva. `npm run sim` crta ekrane sata na 7 veličina i 7 jezika i javlja preklapanja i odsečen tekst.
 
 Ključevi i lozinke (Strava Client Secret, Intervals API ključ) se nikad ne upisuju u kod ni u ovaj repo; korisnik ih unosi u podešavanjima na telefonu.

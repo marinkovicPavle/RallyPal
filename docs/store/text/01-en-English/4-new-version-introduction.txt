@@ -1,0 +1,1 @@
+New in 2.0: CHANGE ENDS with a vibration, points by keys only, "Who won?" when a match ends early, heart rate zones, records, and UNLOCK on the summary after the free matches.

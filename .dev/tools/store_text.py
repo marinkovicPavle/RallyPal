@@ -1,5 +1,6 @@
-# Store texts for the Zepp console (phase 7), one folder per language plus the common ones, with the
-# console's limits checked: App Introduction 40, App Details 600, Privacy Statement 2000 characters.
+# Store texts for the Zepp console (phase 7, and the Version Upgrade of 2.0), one folder per language plus
+# the common ones, with the console's limits checked: App Introduction 40, App Details 600, New Version
+# Introduction 200, Privacy Statement 2000 characters.
 # Usage: python3 .dev/tools/store_text.py   (writes docs/store/text/)
 
 import os
@@ -52,6 +53,17 @@ Créé par Pavle (pavlemarinkovic.com)"""),
 Criado por Pavle (pavlemarinkovic.com)"""),
 ]
 
+# New Version Introduction for 2.0, in the order of LANGS
+NEW_IN = [
+    'New in 2.0: CHANGE ENDS with a vibration, points by keys only, "Who won?" when a match ends early, heart rate zones, records, and UNLOCK on the summary after the free matches.',
+    'Novo u 2.0: PROMENA STRANE sa vibracijom, poen samo tasterom, "Ko je pobedio?" kad se meč prekine, zone pulsa, rekordi i OTKLJUČAJ na kraju meča posle besplatnih mečeva.',
+    'Novedades en 2.0: CAMBIO DE LADO con vibración, puntos solo con teclas, "¿Quién ganó?" al terminar antes, zonas de pulso, récords y DESBLOQUEAR tras los partidos gratis.',
+    'Novità 2.0: CAMBIO CAMPO con vibrazione, punti solo con i tasti, "Chi ha vinto?" se la partita finisce prima, zone di battito, record e SBLOCCA dopo le partite gratis.',
+    'Neu in 2.0: SEITENWECHSEL mit Vibration, Punkte nur per Taste, "Wer hat gewonnen?" bei vorzeitigem Ende, Pulszonen, Rekorde und FREISCHALTEN nach den Gratis-Matches.',
+    'Nouveau en 2.0 : CHANGEMENT DE CÔTÉ avec vibration, points aux touches seulement, « Qui a gagné ? » en fin anticipée, zones cardiaques, records et DÉBLOQUER après l’essai.',
+    'Novo no 2.0: TROCA DE LADO com vibração, pontos só com botões, "Quem venceu?" ao encerrar antes, zonas de frequência, recordes e DESBLOQUEAR após as partidas grátis.',
+]
+
 PRIVACY = """RallyPal Privacy Statement (November 2026, version 2.0)
 
 RallyPal keeps score for racket sports on Zepp OS watches. It is made by Pavle Marinković (pavlemarinkovic.com).
@@ -80,7 +92,9 @@ Contact: pavle019@live.com"""
 
 FEATURES = """Score keeper for racket sports. On the start screen pick a setup (sport and rules), tap NEW MATCH and choose who serves first. In a match the upper half of the screen or the upper key gives the opponent a point, the lower half or the lower key gives you one; UNDO and MENU are in the middle. The match ends by the rules or from the menu, and a summary follows. History and settings are on the watch and on the app's settings page in the Zepp app.
 
-Payment: free download with 3 free matches (a match counts from 5 minutes). Then a one-time $2.99 unlock through KiezelPay: the watch shows a code, the user pays at kzl.io/code and the watch unlocks by itself. Strava and Intervals.icu sync are optional."""
+New in 2.0: a CHANGE ENDS label with a vibration, a setting for points by keys only, a "Who won?" question when a match is ended by hand, heart rate zones in the match details, Records in History, and UNLOCK on the summary after the last free match.
+
+Payment: free download with 3 free matches (a match counts from 5 minutes). Then a one-time $2.99 unlock through KiezelPay: the watch shows a code and a QR code, the user pays at kzl.io/code and the watch unlocks by itself. Strava and Intervals.icu sync are optional."""
 
 OTHERS = 'Device ID (free trial count, sent only as a one-way hash), age from the user profile (heart rate zones).'
 SDK = 'No third-party SDK is bundled. The purchase status is checked over KiezelPay\'s web API.'
@@ -94,7 +108,10 @@ def write(path, text):
 
 def main():
     problems = []
-    for folder, intro, details in LANGS:
+    for (folder, intro, details), new_in in zip(LANGS, NEW_IN):
+        if len(new_in) > 200:
+            problems.append(f'{folder}: new version introduction {len(new_in)} > 200')
+        write(os.path.join(OUT, folder, '4-new-version-introduction.txt'), new_in)
         if len(intro) > 40:
             problems.append(f'{folder}: introduction {len(intro)} > 40')
         if len(details) > 600:
@@ -102,7 +119,7 @@ def main():
         write(os.path.join(OUT, folder, '1-app-name.txt'), 'RallyPal')
         write(os.path.join(OUT, folder, '2-app-introduction.txt'), intro)
         write(os.path.join(OUT, folder, '3-app-details.txt'), details)
-        print(f'{folder}: introduction {len(intro)}, details {len(details)}')
+        print(f'{folder}: introduction {len(intro)}, details {len(details)}, new {len(new_in)}')
     if len(PRIVACY) > 2000:
         problems.append(f'privacy {len(PRIVACY)} > 2000')
     common = os.path.join(OUT, '00-common')

@@ -2,6 +2,8 @@
 
 v1 (1.0.0) je predat na recenziju 2. 11. iz commita 56677d0, grana `claude/rallypal-1.0-store`. Ta grana ostaje kakva je: ako Zepp odbije v1, ispravka ide tamo. v2 se radi na grani `claude/rallypal-2.0` (verzija 2.0.0, isti appId 1134434, pa se instalira preko v1 i čuva istoriju).
 
+**2. 11. 2026, uveče:** urađeno 1 do 6, 8, 11, 12, 13 i 22 (odluke 49 i 50 u [dogovor.md](dogovor.md)); predaja po [SUBMIT-2.0.md](SUBMIT-2.0.md). Otvoreno: 7, 9, 10, 14 do 21, 23 i 24.
+
 Ti biraš brojeve, ništa novo ne pravim dok ne izabereš. Za sve što menja izgled prvo dobijaš elemente, pa sliku, pa tek onda kod, kao do sada. Uz svaku stavku piše koliki je posao, da li ide u besplatnu probu ili u punu verziju i šta nije provereno.
 
 Kako sam gledao: uporedio sam RallyPal sa SaunaPal-om 3.0 (kod i dogovor za v3), prošao stavke iz [ROAST.md](ROAST.md) koje nisu urađene i ponovo pregledao kod koji je dodat danas (proba, KiezelPay, popravke).
