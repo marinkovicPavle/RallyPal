@@ -1,0 +1,5 @@
+node_modules
+dist
+.test.mjs
+.dev/tools/sim/out
+__pycache__

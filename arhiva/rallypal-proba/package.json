@@ -1,0 +1,10 @@
+{
+  "name": "rallypal-proba",
+  "version": "0.1.0",
+  "description": "Zepp OS workout extension probe for RallyPal: which racket workouts offer it, taps on halves, four vibrations, score kept through pauses, heart rate and duration",
+  "main": "app.js",
+  "private": true,
+  "devDependencies": {
+    "@zeppos/device-types": "^3.0.0"
+  }
+}
