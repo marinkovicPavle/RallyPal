@@ -204,5 +204,6 @@ export default {
   'unlock.open': 'Sve kombinacije, pravila i podešavanja su sada otvoreni',
   'set.unlock': 'Otključaj RallyPal',
   'set.unlockSub': '{price} jednom · {trial}',
+  'trial.lastMatch': 'To je bio poslednji besplatni meč',
   'about.full': '{v} · puna'
 }

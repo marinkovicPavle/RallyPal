@@ -220,5 +220,6 @@ export default {
   'unlock.open': 'Every setup, rule and setting is open now',
   'set.unlock': 'Unlock RallyPal',
   'set.unlockSub': '{price} once · {trial}',
+  'trial.lastMatch': 'That was your last free match',
   'about.full': '{v} · full'
 }

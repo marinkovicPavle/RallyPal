@@ -200,5 +200,6 @@ export default {
   'unlock.open': 'Tutti i formati, le regole e le impostazioni sono aperti',
   'set.unlock': 'Sblocca RallyPal',
   'set.unlockSub': '{price} una volta · {trial}',
+  'trial.lastMatch': 'Era la tua ultima partita gratis',
   'about.full': '{v} · completa'
 }

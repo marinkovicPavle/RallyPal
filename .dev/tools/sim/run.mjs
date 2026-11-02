@@ -786,6 +786,15 @@ async function trialWalk(device, lang) {
   qrOnScreen(w, (c) => c === 'https://kzl.io/code')
   await w.swipeBack()
   if (w.name !== 'settings') throw new Error(w.where() + ' BACK from the unlock screen')
+  // the last free match: the summary says it was the last one
+  w.files['meta.json'] = JSON.stringify({ restoredAt: T0 - DAY, bgAsked: T0 - DAY, trialIds: ['m1', 'm2'] })
+  w.open('index')
+  await w.tap(tt('home.newMatch'))
+  await w.tap(tt('team.opponent'))
+  if (w.name !== 'match') throw new Error(w.where() + ' the trial match did not start')
+  await playUntil(w, S.rng(3), () => false)
+  if (w.name !== 'summary') throw new Error(w.where() + ' no summary after the trial match')
+  if (w.allLog.indexOf('toast: ' + tt('trial.lastMatch')) < 0) throw new Error(w.where() + ' no "last free match" message')
   // the free matches are used up: UNLOCK in NEW MATCH's place, settings read-only
   w.files['meta.json'] = JSON.stringify({ restoredAt: T0 - DAY, bgAsked: T0 - DAY, trialIds: ['m1', 'm2', 'm3'] })
   w.open('index')

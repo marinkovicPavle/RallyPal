@@ -8,12 +8,14 @@
 import { BasePage } from '@zeppos/zml/base-page'
 import { ROUND, KEYS, C, K, MX, px, sy, around, at, text, img, marker, markerSize, limeButton, pillButton, purpleButton, textWidth, fitSize,
   chord, HEART } from '../utils/ui'
-import { screen } from '../utils/widgets'
+import { screen, toast } from '../utils/widgets'
 import { createNav, goPage, parseParams } from '../utils/nav'
 import { pointBuzz } from '../utils/feedback'
 import { getMatch, deleteMatch, loadOutbox, loadActive, saveActive, saveHr } from '../utils/data'
 import { startMonitor } from '../utils/bg'
 import { syncWithPhone } from '../utils/sync'
+import { trial, wasCounted } from '../utils/licence'
+import { trialLine } from '../shared/licence'
 import { undo } from '../shared/match'
 import { matchOf } from '../shared/record'
 import { keyRows, resultLine } from '../shared/stats'
@@ -58,7 +60,12 @@ Page(
       if (!st.rec) return goPage('index')
       st.nav = createNav(() => this.done())
       st.nav.show((n) => this.main(n))
-      if (st.params.fresh) pointBuzz('match')
+      if (st.params.fresh) {
+        pointBuzz('match')
+        // in the free trial: how many free matches are left, or that this was the last one (as SaunaPal)
+        const c = wasCounted(st.rec.id)
+        if (c.counted) toast(c.last ? t('trial.lastMatch') : trialLine(trial()))
+      }
       syncWithPhone(this, { onlyId: st.rec.id })
     },
 

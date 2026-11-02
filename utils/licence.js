@@ -23,6 +23,13 @@ export function countMatch(rec) {
   saveMeta({ trialIds: ids })
 }
 
+// True when this match took a free place; last: it took the last one
+export function wasCounted(id) {
+  const m = loadMeta()
+  const ids = trialIds(m)
+  return { counted: !m.licensed && ids.indexOf(id) >= 0, last: !m.licensed && ids.length >= FREE_MATCHES && ids[ids.length - 1] === id }
+}
+
 // What identifies this watch for the trial: its unique ID (Zepp OS 4.2 and newer). Older watches have
 // none; for them the phone makes up a random ID of its own (see app-side/licence.js). The phone hashes
 // it before it leaves the phone.

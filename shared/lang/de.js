@@ -201,5 +201,6 @@ export default {
   'unlock.open': 'Alle Vorlagen, Regeln und Einstellungen sind jetzt offen',
   'set.unlock': 'RallyPal freischalten',
   'set.unlockSub': '{price} einmal · {trial}',
+  'trial.lastMatch': 'Das war dein letztes Gratis-Match',
   'about.full': '{v} · voll'
 }
