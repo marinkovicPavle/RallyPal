@@ -42,15 +42,7 @@ Thanks for supporting RallyPal! This is a one-time purchase, not a subscription.
 ```
 - Štikliraj izjavu o pravima, **CREATE PRODUCT**. KiezelPay trial, ako ga nudi, ostavi isključen (3 besplatna meča broji RallyPal).
 
-KiezelPay App ID (broj koji dobiješ posle CREATE PRODUCT) upiši u `shared/licence.js`:
-```
-export const KPAY_APP_ID = ''
-```
-postaje npr.
-```
-export const KPAY_APP_ID = '311267087'
-```
-(ili mi pošalji broj). Bez njega ekran za otključavanje na satu kaže "KiezelPay not reachable".
+**Urađeno 2. 11.:** proizvod RallyPal napravljen, KiezelPay App ID **2025865549** je upisan u `shared/licence.js` (`KPAY_APP_ID`).
 
 ### 3. Kod na Macu
 
@@ -64,7 +56,7 @@ cd ~/Claude/rallypal-repo && bash .dev/tools/build-copy.sh ~/Claude/rallypal-sto
 ```
 cd ~/Claude/rallypal-store && npm install
 ```
-Kad promeniš appId ili KiezelPay App ID u `rallypal-repo`, ponovo pusti `build-copy.sh` (ili menjaj direktno u `rallypal-store`).
+Kad promeniš appId u `rallypal-repo`, ponovo pusti `build-copy.sh` (ili menjaj direktno u `rallypal-store`).
 
 ### 4. Probna kupovina (preporuka, 10 minuta)
 

@@ -10,14 +10,14 @@ Poslednja izmena: 2. 11. 2026, 15:00. Svaka nova izmena dopisuje se gore u "Dnev
 | 2. Bodovanje svih šest sportova | Gotovo 20. 10. (`shared/rules.js`, `shared/match.js`) |
 | 3. Aplikacija na satu | Gotovo, probano na T-Rex 3 Pro 21. 10., izmene posle probe urađene (odluke 33 do 40) |
 | 4. Telefon (Setups, History, Stats, Settings) | Gotovo 21. 10. (odluka 42), plus srpski, QR i Feedback (43 do 45) |
-| 5. Proba i naplata (3 meča, KiezelPay, pravi appId) | Kod gotov 2. 11. (odluka 47); čeka pravi appId i KiezelPay App ID |
+| 5. Proba i naplata (3 meča, KiezelPay, pravi appId) | Kod gotov 2. 11. (odluka 47), KiezelPay App ID 2025865549 upisan; čeka pravi appId |
 | 6. Strava i Intervals.icu | Napravljeno 21. 10. (odluka 46), čeka probu na pravom telefonu |
 | 7. Store (ikonica, slike, opisi, privatnost, ZAB) | Paket gotov 2. 11. ([SUBMIT.md](SUBMIT.md)); čeka `zeus build` i slanje |
 
 ## Šta čeka
 
 **Od Pavla (redom iz [SUBMIT.md](SUBMIT.md))**
-- Pravi appId sa console.zepp.com (u `app.json` umesto 1099458) i KiezelPay App ID (u `shared/licence.js`, `KPAY_APP_ID`).
+- Pravi appId sa console.zepp.com (u `app.json` umesto 1099458). KiezelPay App ID 2025865549 je upisan.
 - Probna kupovina u test režimu, pa `KPAY_TEST = false`, `zeus build` i slanje.
 - Odluka za Stravu (ROAST stavka 4): za 1.0 ostaje kako jeste (a); zajednička RallyPal Strava aplikacija (b) bi bila 1.1.
 - Proba Strave i Intervals-a na telefonu: Connect Strava, kratak meč sa pulsom, Check the connection za Intervals.

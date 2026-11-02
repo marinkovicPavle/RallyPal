@@ -15,10 +15,9 @@ export const PRICE = '$2.99'
 export const PAY_URL = 'kzl.io/code'
 export const RESTORE_URL = 'kzl.io/unlock'
 
-// The KiezelPay app ID of the RallyPal product (KiezelPay > Products, after "Create product").
-// TO FILL IN before the store build: until then the unlock screen says KiezelPay can't be reached.
-// Test mode lets a purchase go through without paying; it must be false in the build for the Zepp store.
-export const KPAY_APP_ID = ''
+// The KiezelPay app ID of the RallyPal product (created 2. 11. 2026). Test mode lets a purchase go
+// through without paying; it must be false in the build for the Zepp store.
+export const KPAY_APP_ID = '2025865549'
 export const KPAY_TEST = false
 
 // Remembers the matches each watch used, so reinstalling the app doesn't reset the trial. The same
