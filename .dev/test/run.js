@@ -1565,6 +1565,37 @@ test('strava: Connect again after Strava took the access back uses the new sign-
   })
 })
 
+test('strava: from 4 January 2027 the new API address goes first, the old one is the fallback (ROAST 5)', () => {
+  const calls = []
+  const make = (newUp) => ({
+    http(req) {
+      calls.push(req.url)
+      if (req.url.startsWith('https://api-v3.strava.com')) return newUp ? Promise.resolve({ status: 200, data: { firstname: 'New' } }) : Promise.reject(new Error('no host'))
+      return Promise.resolve({ status: 200, data: { firstname: 'Old' } })
+    },
+    wait: () => Promise.resolve()
+  })
+  const later = JSON.stringify({ access_token: 'a', refresh_token: 'r', expires_at: Date.UTC(2028, 0, 1) / 1000 })
+  const store = { stravaClientId: '1', stravaClientSecret: 's', stravaAuth: later }
+  const storage = { getItem: (k) => store[k], setItem: (k, v) => (store[k] = v) }
+  const before = createCore(storage, () => Date.UTC(2026, 11, 31), make(true))
+  return before.stravaCheck().then(() => {
+    assert.deepEqual(calls, ['https://www.strava.com/api/v3/athlete'], 'old address before the switch')
+    calls.length = 0
+    const down = createCore(storage, () => Date.UTC(2027, 0, 5), make(false))
+    return down.stravaCheck()
+  }).then((ok) => {
+    assert.equal(ok, true)
+    assert.deepEqual(calls, ['https://api-v3.strava.com/athlete', 'https://www.strava.com/api/v3/athlete'], 'new first, then old')
+    assert.equal(store.stravaBase, 'https://www.strava.com/api/v3')
+    calls.length = 0
+    const up = createCore(storage, () => Date.UTC(2027, 0, 6), make(true))
+    return up.stravaCheck()
+  }).then(() => {
+    assert.equal(calls[0], 'https://www.strava.com/api/v3/athlete', 'the one that answered goes first')
+  })
+})
+
 test('strava: a sign-in made offline is kept for the next try (ROAST 9)', () => {
   const offline = { http: () => Promise.reject(new Error('no internet')), wait: () => Promise.resolve() }
   const { store, core } = phone(offline, { stravaCode: 'c0de' })

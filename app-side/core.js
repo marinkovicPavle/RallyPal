@@ -15,6 +15,7 @@
 //              settings page; key and vars are a phone text (setting/text.js), so it shows in the page's language
 //   stravaClientId, stravaClientSecret, stravaAuth (JSON tokens), stravaCode, stravaSend ('false' = off)
 //   intervalsKey, intervalsAthlete
+//   stravaBase the Strava API address that answered last (old or new, see STRAVA_NEW)
 //   sentGone   { id: { sync, at } } what was sent of a match the watch deleted (UNDO on the summary), so the
 //              same match coming back updates its Strava and Intervals.icu activities instead of adding new ones
 //   licence, trialSeen, KPAY_ACCOUNTTOKEN, kpayDevice, trialPhoneId  the free trial and the purchase (licence.js)
@@ -45,7 +46,12 @@ const AUTO_TRIES = 5
 const GONE_KEPT_MS = 14 * 86400000
 const GONE_MAX = 50
 
+// Strava's API moves to a new address, available from 4 January 2027 (Strava V3 API changelog, 1 June 2026); the
+// old one is expected to stop on 1 June 2027 (Strava forum). From the switch date the new one is tried first and
+// the old one is the fallback; whichever answered last time goes first (ROAST item 5).
 const STRAVA = 'https://www.strava.com/api/v3'
+const STRAVA_NEW = 'https://api-v3.strava.com'
+const STRAVA_NEW_FROM = Date.UTC(2027, 0, 4)
 const STRAVA_TOKEN = 'https://www.strava.com/oauth/token'
 const INTERVALS = 'https://intervals.icu/api/v1'
 // how long a Strava upload is waited for before the next try picks it up
@@ -362,16 +368,31 @@ export function createCore(storage, clock, net) {
     return Promise.reject(keyError('Strava not connected', 'err.notConnected'))
   }
 
+  // The Strava API addresses to try, in order
+  function stravaBases() {
+    if (now() < STRAVA_NEW_FROM) return [STRAVA]
+    return get('stravaBase') === STRAVA ? [STRAVA, STRAVA_NEW] : [STRAVA_NEW, STRAVA]
+  }
+
+  // A call to the Strava API; when an address can't be reached or doesn't know the path (404), the next one
+  // is tried, and the one that answered is remembered
   function strava(token, path, method, body, type) {
-    return http({
-      url: STRAVA + path,
+    const bases = stravaBases()
+    const attempt = (i) => http({
+      url: bases[i] + path,
       method,
       headers: { Authorization: 'Bearer ' + token, 'Content-Type': type || 'application/json' },
       body: body === undefined ? undefined : type ? body : JSON.stringify(body)
     }).then((r) => {
+      if (r.status === 404 && i + 1 < bases.length) return attempt(i + 1)
       if (r.status < 200 || r.status >= 300) throw httpError('Strava', r.status, r.data)
+      if (bases.length > 1 && get('stravaBase') !== bases[i]) storage.setItem('stravaBase', bases[i])
       return r.data
-    }, netError('Strava'))
+    }, (e) => {
+      if (i + 1 < bases.length) return attempt(i + 1)
+      return netError('Strava')(e)
+    })
+    return attempt(0)
   }
 
   function stravaCheck() {
