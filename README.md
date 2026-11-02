@@ -26,6 +26,7 @@ Aplikacija za Zepp OS satove (Amazfit) koja vodi rezultat u šest reket sportova
 - [docs/SUBMIT.md](docs/SUBMIT.md): predaja u Zepp store i KiezelPay, korak po korak.
 - [docs/plan-izrade.md](docs/plan-izrade.md): faze izrade 1 do 7.
 - [docs/dogovor.md](docs/dogovor.md): sve odluke sa vremenom, izvor istine.
+- [docs/ROAST-v2.md](docs/ROAST-v2.md): roast za v2 (2. 11. 2026), čeka izbor brojeva. v1 je predat iz grane `claude/rallypal-1.0-store`.
 - [docs/ROAST.md](docs/ROAST.md): spisak poboljšanja pre izlaska (22. 10. 2026); 1, 2, 6, 8, 9, 10 i 13 urađeni 2. 11. (odluke 47 i 48).
 - [docs/telefon-elementi.md](docs/telefon-elementi.md), [docs/izmene-posle-probe.md](docs/izmene-posle-probe.md), [docs/izmene-posle-telefona.md](docs/izmene-posle-telefona.md): elementi i izmene po probama.
 - [docs/ideje.md](docs/ideje.md): početni spisak ideja za drugu Zepp aplikaciju.

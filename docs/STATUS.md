@@ -40,6 +40,7 @@ Poslednja izmena: 2. 11. 2026, 15:00. Svaka nova izmena dopisuje se gore u "Dnev
 
 ## Dnevnik
 
+- **2. 11. 2026, uveče:** v1 (1.0.0) predat na recenziju iz 56677d0 (grana `claude/rallypal-1.0-store`, ostaje kakva je). v2 na grani `claude/rallypal-2.0` (2.0.0): poruka posle besplatnog meča i ispravljena Strava napomena; roast za v2 u [ROAST-v2.md](ROAST-v2.md), čeka izbor brojeva.
 - **2. 11. 2026, 15:00:** faza 5 i 7 i greške iz ROAST-a (odluke 47 i 48). Proba od 3 meča i KiezelPay kao SaunaPal: brojač na satu i na Cloudflare servisu, ekran za otključavanje na satu, OTKLJUČAJ umesto NOVI MEČ posle probe, katanci na telefonu. Greške: 6 (meč ostavljen otvoren), 8 (vraćanje istorije i grafici pulsa), 9 (red za slanje), 10 (servis u dublu), 13 (kratki mečevi). Paket za store u `docs/store/` i [SUBMIT.md](SUBMIT.md); `.dev/tools/build-copy.sh` kopira samo aplikaciju za `zeus build`.
 - **2. 11. 2026:** kod i sva dokumentacija prvi put u GitHub repo (stanje sa 22. 10.).
 - **22. 10. 2026:** roast pre izlaska, [ROAST.md](ROAST.md): 22 stavke; greške ponovljene probnim skriptama (meč završen sutra traje 16 h na Stravi, sat ne vraća istoriju ako već ima meč, grafici pulsa se brišu posle 20 mečeva, dupli Intervals unos, red za slanje se blokira, servis u dublu). Nađeno i da Strava traži pretplatu za API (od 30. 6. 2026) i menja adresu API-ja od 4. 1. 2027.
