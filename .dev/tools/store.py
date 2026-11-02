@@ -1,7 +1,8 @@
 # Store pictures for the Zepp console (phase 7), drawn from the simulator's screens (npm run sim first):
 #   docs/store/icon-240.png                    the app icon, 240 x 240, transparent around the circle
-#   docs/store/screenshots/round/N-name.png    360 x 360, transparent outside the round screen
-#   docs/store/screenshots/square/N-name.png   360 x 360, the square screen scaled in, transparent around it
+#   docs/store/screenshots/<NN-lang>/round/N-name.png   360 x 360, transparent outside the round screen
+#   docs/store/screenshots/<NN-lang>/square/N-name.png  360 x 360, the square screen scaled in, transparent around it
+#   (one set per language, the folders named as the texts in docs/store/text)
 #   docs/store/kiezelpay-logo.png              the app icon, 512 x 512, for the KiezelPay product (as SaunaPal)
 # Usage: python3 .dev/tools/store.py [sim-out-dir]
 
@@ -23,13 +24,15 @@ SIZE = 360
 # the match first (most people only see the first two or three), then the six sports, the summary,
 # the pickleball call and the history
 SHOTS = [
-    ('1-match', 'en · Match, break point'),
-    ('2-sports', 'en · Match setups'),
-    ('3-padel', 'en · Padel, star point'),
-    ('4-summary', 'en · Summary, won'),
-    ('5-pickleball', 'en · Pickleball, score call'),
-    ('6-history', 'en · History')
+    ('1-match', 'Match, break point'),
+    ('2-sports', 'Match setups'),
+    ('3-padel', 'Padel, star point'),
+    ('4-summary', 'Summary, won'),
+    ('5-pickleball', 'Pickleball, score call'),
+    ('6-history', 'History')
 ]
+LANGS = [('en', '01-en-English'), ('sr', '02-sr-Serbian'), ('es', '03-es-Spanish'), ('it', '04-it-Italian'),
+         ('de', '05-de-German'), ('fr', '06-fr-French'), ('pt', '07-pt-Portuguese')]
 
 
 def cut(dev, shot):
@@ -60,13 +63,14 @@ def main():
     for kind, device in (('round', 'round360'), ('square', 'sq390x450')):
         data = json.load(open(os.path.join(SIM, device + '.json')))
         by = {s['label']: s for s in data['shots']}
-        folder = os.path.join(OUT, 'screenshots', kind)
-        os.makedirs(folder, exist_ok=True)
-        for name, label in SHOTS:
-            if label not in by:
-                raise SystemExit(f'{device}: no screen "{label}"')
-            img = cut(data['device'], by[label])
-            img.save(os.path.join(folder, name + '.png'))
+        for lang, lang_folder in LANGS:
+            folder = os.path.join(OUT, 'screenshots', lang_folder, kind)
+            os.makedirs(folder, exist_ok=True)
+            for name, label in SHOTS:
+                key = f'{lang} · {label}'
+                if key not in by:
+                    raise SystemExit(f'{device}: no screen "{key}" (run npm run sim first)')
+                cut(data['device'], by[key]).save(os.path.join(folder, name + '.png'))
     print('written to', OUT)
 
 

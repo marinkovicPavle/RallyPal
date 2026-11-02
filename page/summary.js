@@ -78,8 +78,10 @@ Page(
       goPage('index')
     },
 
+    // after the last free match the lime button is UNLOCK (as SaunaPal) and opens the unlock screen
     rematch() {
       const rec = this.state.rec
+      if (trial().locked) return goPage('unlock')
       goPage('index', { rematch: rec.setup || rec.sport })
     },
 
@@ -130,7 +132,11 @@ Page(
       const done = () => this.done()
       const rematch = () => this.rematch()
       const canUndo = !!st.params.fresh
-      limeButton(around(rx, D.btnY, rw, D.btnH), t('sum.rematch'), D.btnSize, guard(rematch))
+      // REMATCH, or UNLOCK once the free matches are used up; a longer word makes the button wider to the left
+      const lime = trial().locked ? t('home.unlock') : t('sum.rematch')
+      // as wide as the word needs, up to the edge of the screen (the text gets smaller after that)
+      const lw = Math.min(R ? 164 : 196, Math.max(rw, Math.ceil(textWidth(lime, px(D.btnSize)) / K) + 32))
+      limeButton(around(rx + (rw - lw) / 2, D.btnY, lw, D.btnH), lime, D.btnSize, guard(rematch))
       pillButton(around(dx, D.btnY, dw, D.btnH), t('sum.done'), D.btnSize, guard(done))
       if (canUndo) {
         const label = t('match.undo')

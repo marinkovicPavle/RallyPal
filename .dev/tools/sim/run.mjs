@@ -820,6 +820,10 @@ async function trialWalk(device, lang) {
   await playUntil(w, S.rng(3), () => false)
   if (w.name !== 'summary') throw new Error(w.where() + ' no summary after the trial match')
   if (w.allLog.indexOf('toast: ' + tt('trial.lastMatch')) < 0) throw new Error(w.where() + ' no "last free match" message')
+  w.shot('Summary, last free match')
+  await w.advance(2)
+  await w.tap(tt('home.unlock'))
+  if (w.name !== 'unlock') throw new Error(w.where() + ' UNLOCK on the summary')
   // the free matches are used up: UNLOCK in NEW MATCH's place, settings read-only
   w.files['meta.json'] = JSON.stringify({ restoredAt: T0 - DAY, bgAsked: T0 - DAY, trialIds: ['m1', 'm2', 'm3'] })
   w.open('index')
