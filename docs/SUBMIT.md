@@ -8,15 +8,7 @@ Sve što se kuca ili lepi je ispod, spremno za kopiranje. Tekstovi su u `docs/st
 
 console.zepp.com > **My Service > Application > Create App**, ime **RallyPal**, tip Mini Program (App). appId je broj u prvoj koloni (za SaunaPal je bio 1131485). Ako ime nije slobodno, javi mi pa biramo drugo.
 
-Upiši ga u `app.json` umesto privremenog 1099458:
-```
-"appId": 1099458,
-```
-postaje npr.
-```
-"appId": 1234567,
-```
-(ili mi pošalji broj, pa ja to uradim).
+**Urađeno 2. 11.:** aplikacija RallyPal napravljena, appId **1134434** je upisan u `app.json`.
 
 ### 2. KiezelPay proizvod
 
@@ -56,7 +48,7 @@ cd ~/Claude/rallypal-repo && bash .dev/tools/build-copy.sh ~/Claude/rallypal-sto
 ```
 cd ~/Claude/rallypal-store && npm install
 ```
-Kad promeniš appId u `rallypal-repo`, ponovo pusti `build-copy.sh` (ili menjaj direktno u `rallypal-store`).
+Kad se nešto promeni u `rallypal-repo` (`git pull`), ponovo pusti `build-copy.sh`.
 
 ### 4. Probna kupovina (preporuka, 10 minuta)
 

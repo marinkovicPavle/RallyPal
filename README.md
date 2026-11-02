@@ -6,7 +6,7 @@ Aplikacija za Zepp OS satove (Amazfit) koja vodi rezultat u šest reket sportova
 
 | Putanja | Šta je |
 |---|---|
-| `app.json`, `app.js` | Opis aplikacije za Zepp (appId 1099458 je privremen, pravi se upisuje pre store build-a, vidi [docs/SUBMIT.md](docs/SUBMIT.md)) |
+| `app.json`, `app.js` | Opis aplikacije za Zepp (appId 1134434, sa console.zepp.com 2. 11.) |
 | `page/` | Ekrani na satu: početni, meč, kraj meča, istorija, podešavanja |
 | `shared/` | Zajednički kod za sat i telefon: pravila i bodovanje (`rules.js`, `match.js`), statistika, jezici (`lang/`), Strava i Intervals podaci (`integrations.js`), besplatna proba i KiezelPay (`licence.js`) |
 | `utils/` | Sat: tasteri, čuvanje, sinhronizacija sa telefonom, pozadinski puls |
