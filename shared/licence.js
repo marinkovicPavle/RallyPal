@@ -20,10 +20,11 @@ export const RESTORE_URL = 'kzl.io/unlock'
 export const KPAY_APP_ID = '2025865549'
 export const KPAY_TEST = false
 
-// Remembers the matches each watch used, so reinstalling the app doesn't reset the trial. The same
-// Cloudflare service as SaunaPal (it only stores hashes); RallyPal hashes with its own prefixes
-// (shared/trialhash.js), so a watch's RallyPal and SaunaPal counts never mix.
-export const TRIAL_URL = 'https://saunapal-trial.svadba-media.workers.dev/v1/trial'
+// Remembers the matches each watch used, so reinstalling the app doesn't reset the trial. RallyPal's own
+// Cloudflare service (.dev/tools/trial-server), separate from SaunaPal's since 2.0; it only stores hashes.
+// 1.0.0 used SaunaPal's service with RallyPal's own hash prefixes; the watch keeps its own count, so
+// moving lost nothing but matches counted only by the old service before a reinstall.
+export const TRIAL_URL = 'https://rallypal-trial.svadba-media.workers.dev/v1/trial'
 
 // Settings that can be changed during the trial; the rest keep what they have until the app is unlocked
 export const FREE_KEYS = ['vibePoint', 'vibeGame', 'vibeSet', 'vibeMatch', 'serveDisplay', 'labels', 'screen', 'lang']
