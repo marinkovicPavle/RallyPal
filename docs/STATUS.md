@@ -31,6 +31,13 @@ Poslednja izmena: 2. 11. 2026, 15:00. Svaka nova izmena dopisuje se gore u "Dnev
 - Da li Strava i Intervals.icu primaju Padel, Pickleball i ostale kao tip aktivnosti.
 - Baterija na meču od sat vremena.
 
+## Provere koje prolaze za 2.0 (2. 11. 2026, kasno uveče)
+
+- 93 testa (`npm test`), među njima promena strane po sportovima, ko je pobedio, zone pulsa, rekordi i nova Strava adresa; testovi servisa za probu (`node .dev/tools/trial-server/test.js`).
+- Simulator sata: 7 veličina ekrana x 7 jezika, 3.241 ekran sa novim ekranima v2, 0 preklapanja ili odsečenog teksta (francuski natpis za promenu strane skraćen na CHANGER DE CÔTÉ posle prvog prolaza).
+- Slike za store: 6 okruglih i 6 četvrtastih na svakom od 7 jezika (`docs/store/screenshots/`).
+- Servis `rallypal-trial` postavljen kao `saunapal-trial` (isti kod, svoj KV), ali iz ovog okruženja ne može da se pozove; proveriti otvaranjem adrese u pregledaču.
+
 ## Provere koje prolaze (2. 11. 2026, 15:00)
 
 - 87 testova (`npm test`), među njima nasumični mečevi za svaku kombinaciju pravila, proba i KiezelPay, i test za svaku popravku iz ROAST-a.

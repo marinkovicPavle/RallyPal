@@ -185,7 +185,7 @@ export default {
 
   // free trial and unlock (shared/licence.js, page/unlock.js)
   // v2: change ends, points by tap, who won (ROAST 14, 15, 17)
-  'label.change_ends': 'CHANGEMENT DE CÔTÉ',
+  'label.change_ends': 'CHANGER DE CÔTÉ',
   'set.changeEnds': 'Changement de côté',
   'opt.changeEnds.on': 'Texte et vibration',
   'set.tapPoints': 'Points au toucher',
