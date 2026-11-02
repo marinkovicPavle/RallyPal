@@ -15,6 +15,8 @@ Tekstovi su u `docs/store/text/` (po folder za svaki jezik, `01-en-English` do `
 - Sopstveni servis za brojanje probe (`rallypal-trial`), odvojen od SaunaPal-a.
 - Strava: nova adresa API-ja od 4. 1. 2027 (stara ostaje rezerva), ispravljena napomena o Stravinoj pretplati.
 
+Slike novih ekrana: [rallypal-v2-sat.png](rallypal-v2-sat.png) (sat: promena strane, ko je pobedio, OTKLJUČAJ na kraju meča, rekordi, zone u detaljima, podešavanja) i [rallypal-v2-telefon.png](rallypal-v2-telefon.png) (telefon: rekordi u Statistici, zone u detaljima meča, maksimalni puls i nova podešavanja).
+
 ## A. Pre predaje (ti, na Macu)
 
 ```
