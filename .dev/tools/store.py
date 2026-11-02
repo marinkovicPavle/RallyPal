@@ -2,7 +2,7 @@
 #   docs/store/icon-240.png                    the app icon, 240 x 240, transparent around the circle
 #   docs/store/screenshots/round/N-name.png    360 x 360, transparent outside the round screen
 #   docs/store/screenshots/square/N-name.png   360 x 360, the square screen scaled in, transparent around it
-#   docs/store/kiezelpay-preview.png           the first round screenshot, for the KiezelPay product
+#   docs/store/kiezelpay-logo.png              the app icon, 512 x 512, for the KiezelPay product (as SaunaPal)
 # Usage: python3 .dev/tools/store.py [sim-out-dir]
 
 import json
@@ -56,6 +56,7 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     icon = Image.open(os.path.join(here, 'icon-1024.png')).convert('RGBA').resize((240, 240), Image.LANCZOS)
     icon.save(os.path.join(OUT, 'icon-240.png'))
+    Image.open(os.path.join(here, 'icon-1024.png')).convert('RGBA').resize((512, 512), Image.LANCZOS).save(os.path.join(OUT, 'kiezelpay-logo.png'))
     for kind, device in (('round', 'round360'), ('square', 'sq390x450')):
         data = json.load(open(os.path.join(SIM, device + '.json')))
         by = {s['label']: s for s in data['shots']}
@@ -66,8 +67,6 @@ def main():
                 raise SystemExit(f'{device}: no screen "{label}"')
             img = cut(data['device'], by[label])
             img.save(os.path.join(folder, name + '.png'))
-            if kind == 'round' and name.startswith('1-'):
-                img.save(os.path.join(OUT, 'kiezelpay-preview.png'))
     print('written to', OUT)
 
 

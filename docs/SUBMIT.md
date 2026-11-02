@@ -22,7 +22,7 @@ postaje npr.
 
 kiezelpay.com > **ADD NEW > Add New Product**:
 
-- **Product Image, Amazfit:** `docs/store/kiezelpay-preview.png` (ekran meča). Fitbit, Garmin i Pebble prazni.
+- **Product Image, Amazfit:** `docs/store/kiezelpay-logo.png` (ikonica aplikacije, kao za SaunaPal). Fitbit, Garmin i Pebble prazni.
 - **Name of Product:**
 ```
 RallyPal
@@ -38,7 +38,7 @@ Full version of RallyPal for Zepp OS watches: score keeping for tennis, padel, p
 - **Fitbit / Garmin / Pebble Appstore Url, Custom Domain:** prazno. **Amazfit Appstore Url:** prazno sada, upisuje se link iz store-a kad Zepp odobri.
 - **Custom Product Note:**
 ```
-Thanks for buying RallyPal! Your watch unlocks by itself within a minute; keep the Zepp app open on your phone. Lost your unlock after a reset? Restore it at kzl.io/unlock. Questions: pavle019@live.com
+Thanks for supporting RallyPal! This is a one-time purchase, not a subscription. Keep RallyPal open on your watch, with the Zepp app running on your phone, until it shows "Unlocked".
 ```
 - Štikliraj izjavu o pravima, **CREATE PRODUCT**. KiezelPay trial, ako ga nudi, ostavi isključen (3 besplatna meča broji RallyPal).
 
