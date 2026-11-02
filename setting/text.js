@@ -185,6 +185,13 @@ const en = {
   // v2 (ROAST 14 and 15)
   'ends.sub': 'A label and a vibration when the players change ends (tennis, padel, table tennis, badminton, pickleball).',
   'tap.sub': 'Off: points only with the keys, against sweat and rain (watches with two or more keys).',
+  // v2: heart rate zones and records
+  'h.zones': 'HEART RATE ZONES',
+  'zones.max': 'Maximum heart rate',
+  'zones.maxHint': 'Empty: 220 minus your age',
+  'zones.note': 'The watch counts the zones from this maximum when a match ends: Z1 under 60%, Z2 60–70%, Z3 70–80%, Z4 80–90%, Z5 90% and more.',
+  'st.records': 'RECORDS',
+  'hist.zones': 'HEART RATE ZONES',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Free trial: {n} of {total} matches left',
   'pay.ended': 'Free trial ended',
@@ -379,6 +386,13 @@ const es = {
   // v2 (ROAST 14 and 15)
   'ends.sub': 'Un aviso y una vibración cuando toca cambiar de lado (tenis, pádel, tenis de mesa, bádminton, pickleball).',
   'tap.sub': 'Desactivado: puntos solo con las teclas, contra el sudor y la lluvia (relojes con dos o más teclas).',
+  // v2: heart rate zones and records
+  'h.zones': 'ZONAS DE PULSO',
+  'zones.max': 'Pulso máximo',
+  'zones.maxHint': 'Vacío: 220 menos tu edad',
+  'zones.note': 'El reloj calcula las zonas con este máximo al terminar el partido: Z1 por debajo del 60%, Z2 60–70%, Z3 70–80%, Z4 80–90%, Z5 90% o más.',
+  'st.records': 'RÉCORDS',
+  'hist.zones': 'ZONAS DE PULSO',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Prueba gratis: quedan {n} de {total} partidos',
   'pay.ended': 'Prueba gratis terminada',
@@ -572,6 +586,13 @@ const it = {
   // v2 (ROAST 14 and 15)
   'ends.sub': 'Una scritta e una vibrazione quando si cambia campo (tennis, padel, tennis tavolo, badminton, pickleball).',
   'tap.sub': 'Disattivato: punti solo con i tasti, contro sudore e pioggia (orologi con due o più tasti).',
+  // v2: heart rate zones and records
+  'h.zones': 'ZONE DI BATTITO',
+  'zones.max': 'Battito massimo',
+  'zones.maxHint': 'Vuoto: 220 meno la tua età',
+  'zones.note': 'L’orologio calcola le zone da questo massimo a fine partita: Z1 sotto il 60%, Z2 60–70%, Z3 70–80%, Z4 80–90%, Z5 90% e oltre.',
+  'st.records': 'RECORD',
+  'hist.zones': 'ZONE DI BATTITO',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Prova gratuita: {n} di {total} partite rimaste',
   'pay.ended': 'Prova gratuita terminata',
@@ -763,6 +784,13 @@ const de = {
   // v2 (ROAST 14 and 15)
   'ends.sub': 'Ein Hinweis und eine Vibration beim Seitenwechsel (Tennis, Padel, Tischtennis, Badminton, Pickleball).',
   'tap.sub': 'Aus: Punkte nur mit den Tasten, gegen Schweiß und Regen (Uhren mit zwei oder mehr Tasten).',
+  // v2: heart rate zones and records
+  'h.zones': 'PULSZONEN',
+  'zones.max': 'Maximalpuls',
+  'zones.maxHint': 'Leer: 220 minus dein Alter',
+  'zones.note': 'Die Uhr berechnet die Zonen am Ende eines Matches aus diesem Maximum: Z1 unter 60 %, Z2 60–70 %, Z3 70–80 %, Z4 80–90 %, Z5 ab 90 %.',
+  'st.records': 'REKORDE',
+  'hist.zones': 'PULSZONEN',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Gratis-Test: noch {n} von {total} Matches',
   'pay.ended': 'Gratis-Test beendet',
@@ -957,6 +985,13 @@ const fr = {
   // v2 (ROAST 14 and 15)
   'ends.sub': 'Un texte et une vibration au changement de côté (tennis, padel, tennis de table, badminton, pickleball).',
   'tap.sub': 'Désactivé : points seulement avec les touches, contre la sueur et la pluie (montres à deux touches ou plus).',
+  // v2: heart rate zones and records
+  'h.zones': 'ZONES CARDIAQUES',
+  'zones.max': 'Fréquence cardiaque max.',
+  'zones.maxHint': 'Vide : 220 moins votre âge',
+  'zones.note': 'La montre calcule les zones à partir de ce maximum à la fin du match : Z1 sous 60 %, Z2 60–70 %, Z3 70–80 %, Z4 80–90 %, Z5 90 % et plus.',
+  'st.records': 'RECORDS',
+  'hist.zones': 'ZONES CARDIAQUES',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Essai gratuit : {n} matchs sur {total} restants',
   'pay.ended': 'Essai gratuit terminé',
@@ -1151,6 +1186,13 @@ const pt = {
   // v2 (ROAST 14 and 15)
   'ends.sub': 'Um aviso e uma vibração na troca de lado (tênis, padel, tênis de mesa, badminton, pickleball).',
   'tap.sub': 'Desligado: pontos só com os botões, contra suor e chuva (relógios com dois ou mais botões).',
+  // v2: heart rate zones and records
+  'h.zones': 'ZONAS DE FREQUÊNCIA',
+  'zones.max': 'Frequência máxima',
+  'zones.maxHint': 'Vazio: 220 menos sua idade',
+  'zones.note': 'O relógio calcula as zonas a partir deste máximo no fim da partida: Z1 abaixo de 60%, Z2 60–70%, Z3 70–80%, Z4 80–90%, Z5 90% ou mais.',
+  'st.records': 'RECORDES',
+  'hist.zones': 'ZONAS DE FREQUÊNCIA',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Teste grátis: restam {n} de {total} partidas',
   'pay.ended': 'Teste grátis encerrado',
@@ -1354,6 +1396,13 @@ const sr = {
   // v2 (ROAST 14 and 15)
   'ends.sub': 'Natpis i vibracija kad se menja strana terena (tenis, padel, stoni tenis, badminton, pikleball).',
   'tap.sub': 'Isključeno: poen samo tasterom, protiv znoja i kiše (satovi sa dva ili više tastera).',
+  // v2: heart rate zones and records
+  'h.zones': 'ZONE PULSA',
+  'zones.max': 'Maksimalni puls',
+  'zones.maxHint': 'Prazno: 220 minus tvoje godine',
+  'zones.note': 'Sat računa zone od ovog maksimuma kad se meč završi: Z1 ispod 60%, Z2 60–70%, Z3 70–80%, Z4 80–90%, Z5 90% i više.',
+  'st.records': 'REKORDI',
+  'hist.zones': 'ZONE PULSA',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Besplatna proba: preostalo {n} od {total} mečeva',
   'pay.ended': 'Besplatna proba je završena',

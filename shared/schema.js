@@ -35,6 +35,8 @@ export const SETTINGS = [
   { key: 'lang', group: 'display', kind: 'enum', def: 'auto', options: ['auto', 'en', 'sr', 'es', 'it', 'de', 'fr', 'pt'] },
   // shown instead of YOU; typed on the phone
   { key: 'myName', group: 'names', kind: 'name', def: '' },
+  // heart rate zones are counted from this maximum; 0: 220 minus the age from the Zepp profile (typed on the phone)
+  { key: 'hrMax', group: 'zones', kind: 'int', def: 0, min: 120, max: 230 },
   { key: 'setups', group: 'setups', kind: 'setups', def: DEFAULT_SETUPS }
 ]
 
@@ -70,6 +72,10 @@ export function sanitize(key, value) {
     return s.def
   }
   if (s.kind === 'name') return cleanName(value)
+  if (s.kind === 'int') {
+    const n = Math.round(Number(value))
+    return n >= s.min && n <= s.max ? n : s.def
+  }
   if (s.kind === 'setups') return sanitizeSetups(value)
   return clone(s.def)
 }

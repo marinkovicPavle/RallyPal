@@ -52,12 +52,13 @@ Créé par Pavle (pavlemarinkovic.com)"""),
 Criado por Pavle (pavlemarinkovic.com)"""),
 ]
 
-PRIVACY = """RallyPal Privacy Statement (November 2026)
+PRIVACY = """RallyPal Privacy Statement (November 2026, version 2.0)
 
 RallyPal keeps score for racket sports on Zepp OS watches. It is made by Pavle Marinković (pavlemarinkovic.com).
 
 What the app uses
-- Heart rate: shown during a match and saved with it.
+- Heart rate: shown during a match and saved with it, with the time in each heart rate zone.
+- Age from your Zepp profile: to work out the heart rate zones (unless you set your own maximum).
 - Watch model and device ID: for the free trial.
 
 Your matches, with the names you type for players, are stored on your watch and backed up to the Zepp app on your phone. They are not sent to us.
@@ -81,7 +82,7 @@ FEATURES = """Score keeper for racket sports. On the start screen pick a setup (
 
 Payment: free download with 3 free matches (a match counts from 5 minutes). Then a one-time $2.99 unlock through KiezelPay: the watch shows a code, the user pays at kzl.io/code and the watch unlocks by itself. Strava and Intervals.icu sync are optional."""
 
-OTHERS = 'Device ID (free trial count, sent only as a one-way hash).'
+OTHERS = 'Device ID (free trial count, sent only as a one-way hash), age from the user profile (heart rate zones).'
 SDK = 'No third-party SDK is bundled. The purchase status is checked over KiezelPay\'s web API.'
 
 

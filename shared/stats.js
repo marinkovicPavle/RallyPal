@@ -41,3 +41,12 @@ export function resultLine(rec) {
   const r = resultOf(rec)
   return { text: t('result.' + r), tone: r === 'won' ? 'lime' : r === 'lost' ? 'red' : 'gray' }
 }
+
+// A record's name and value as the lists write them (shared/insights.js)
+export function recordLabel(kind) {
+  return t('rec.' + kind)
+}
+
+export function recordValue(kind, value) {
+  return kind === 'longest' ? clock(value) : String(value)
+}

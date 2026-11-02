@@ -1,16 +1,18 @@
 // History (approved drawing 9): the matches, newest first, with the sport's marker, W or L, the score,
-// the opponent and the day, and the duration. A tap opens the details (drawing 10): the statistics and
-// DELETE, which asks first and deletes the match on the phone too.
+// the opponent and the day, and the duration. A tap opens the details (drawing 10): the statistics, the
+// heart rate zones and DELETE, which asks first and deletes the match on the phone too.
+// Records (v2, as SaunaPal) head the list once there are matches; they are open in the trial too.
 
 import { BasePage } from '@zeppos/zml/base-page'
 import { ROUND, C, K, MX, px, sy, around, at, text, rect, outline, cover, marker, markerSize, textWidth, chord,
   setContentBottom } from '../utils/ui'
-import { screen, heading, confirm, toast } from '../utils/widgets'
+import { screen, heading, confirm, toast, list, zonesBar } from '../utils/widgets'
 import { createNav, goPage, parseParams } from '../utils/nav'
 import { loadHistory, getMatch, deleteMatch } from '../utils/data'
 import { syncWithPhone } from '../utils/sync'
 import { wonCount } from '../shared/record'
-import { detailRows, resultLine } from '../shared/stats'
+import { detailRows, resultLine, recordLabel, recordValue } from '../shared/stats'
+import { records, RECORDS } from '../shared/insights'
 import { sportName } from '../shared/setups'
 import { hm, dayLabel, shortDate, timeOfDay, prettyScore, resultOf } from '../shared/format'
 import { t } from '../shared/i18n'
@@ -61,6 +63,12 @@ Page(
       const w = wonCount(history)
       at(MX, L.countY, 340, n === 1 ? t('history.one', { w }) : t('history.count', { n, w }), 18, C.gray)
       let y = L.top
+      // Records, first in the list
+      const rb = around(MX, y, L.w, L.h - 8)
+      rect(rb, C.pill, 22)
+      text({ x: rb.x + px(24), y: rb.y, w: rb.w - px(48), h: rb.h }, t('rec.title'), 21, C.lime, { align: 'left', min: 16 })
+      cover(rb, () => nav.push((nn) => this.recordsScreen(nn)))
+      y += L.step
       history.slice(0, MAX_ROWS).forEach((rec) => {
         this.row(rec, y, now, () => nav.push((nn) => this.detail(nn, rec.id)))
         y += L.step
@@ -135,11 +143,39 @@ Page(
         text({ x: px(x1 - vw), y: sy(y - h / 2), w: px(vw), h: px(h) }, row[1], 21, C.white, { align: 'right', min: 15 })
         y += DT.step
       })
-      const [dy, dw, dh] = DT.del
+      // heart rate zones (the summary has no room for them, so they are here, in the trial too); the page
+      // scrolls when they make it longer
+      if (rec.zones && rec.zones.sec) {
+        y += 6 - DT.step / 2
+        at(MX, y + 10, 300, t('zones.title'), 17, C.gray)
+        y = zonesBar(y + 30, rec.zones.sec, R ? 300 : 340, true) + 10
+      }
+      const [dy0, dw, dh] = DT.del
+      const dy = Math.max(dy0, y + dh / 2 + 8)
       const b = around(MX, dy, Math.max(dw, Math.ceil(textWidth(t('detail.delete'), px(17)) / K) + 44), dh)
       outline(b, C.red, dh / 2, 2)
       text(b, t('detail.delete'), 17, C.red, { min: 13 })
       cover(b, () => nav.push((n) => this.confirmDelete(n, rec)))
+      if (dy > dy0) setContentBottom(dy + dh / 2 + (R ? 90 : 24))
+      return { keys: {}, hints: {} }
+    },
+
+    // The records (v2): the longest match, the longest run of points, the most wins in a row, the most
+    // matches in a week; a tap on one opens its match
+    recordsScreen(nav) {
+      const rec = records(loadHistory())
+      const rows = RECORDS.map((k) => {
+        const r = rec[k]
+        const match = r && (k === 'longest' || k === 'streak') ? loadHistory().filter((h) => h.start === r.at)[0] : null
+        return {
+          label: recordLabel(k),
+          value: r ? recordValue(k, r.value) : '–',
+          valueColor: r ? C.lime : C.gray,
+          onTap: match ? () => nav.push((n) => this.detail(n, match.id)) : undefined
+        }
+      })
+      rows.push({ note: t('rec.note'), h: 70, size: 16 })
+      list({ title: t('rec.title').toUpperCase(), rows })
       return { keys: {}, hints: {} }
     },
 

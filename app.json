@@ -15,6 +15,7 @@
   "permissions": [
     "data:os.device.info",
     "data:user.hd.heart_rate",
+    "data:user.info",
     "device:os.bg_service",
     "device:os.local_storage"
   ],

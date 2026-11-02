@@ -12,6 +12,7 @@ import { setupTitle, fittedTitle, setupExtra, matchNames, teamName, partnerName 
 import { addHr, mergeHr, hrStats, makeRecord, matchOf, wonCount, restoreFrom, RESTORE_AGAIN_MS } from '../../shared/record'
 import { trialOf, canEdit, counts, playable, trialLine, FREE_MATCHES, MIN_MATCH_SEC } from '../../shared/licence'
 import { devHash, matchHash } from '../../shared/trialhash'
+import { hrMaxOf, zoneOf, zonesFromCurve, zonePercents, records, newRecords } from '../../shared/insights'
 import { createLicence } from '../../app-side/licence'
 import { cardView, lastLine } from '../../shared/card'
 import { clock, hm, prettyScore, dayLabel, percent, resultOf } from '../../shared/format'
@@ -1686,6 +1687,42 @@ test('strava: a sign-in made offline is kept for the next try (ROAST 9)', () => 
     assert.equal(store.stravaCode, 'c0de')
     assert.equal(JSON.parse(store.status).strava.key, 'err.offline')
   })
+})
+
+// ---------------------------------------------------------------- v2: heart rate zones and records
+
+test('zones: the maximum, the zone of a heart rate, seconds per zone and percents (ROAST-v2 4)', () => {
+  assert.equal(hrMaxOf({ hrMax: 0 }, 40), 180)
+  assert.equal(hrMaxOf({ hrMax: 0 }, 0), 190, 'no age: 190')
+  assert.equal(hrMaxOf({ hrMax: 175 }, 40), 175, 'the user\'s own')
+  assert.equal(sanitize('hrMax', '400'), 0)
+  assert.equal(sanitize('hrMax', '182'), 182)
+  assert.equal(zoneOf(100, 200), 0)
+  assert.equal(zoneOf(120, 200), 1)
+  assert.equal(zoneOf(150, 200), 2, '75%: Z3')
+  assert.equal(zoneOf(195, 200), 4)
+  // 10 s at 100 (Z1), 10 s at 150 (Z3), 185 (Z5) then a gap of 5 minutes (only 60 s count), 120 (Z2) to the
+  // end of the match; a reading of 30 is no heart rate
+  const sec = zonesFromCurve([[0, 100], [10, 150], [20, 185], [320, 120], [330, 30]], 340, 200)
+  assert.deepEqual(sec, [10, 20, 10, 0, 60])
+  assert.equal(zonesFromCurve([], 100, 200), null)
+  const pct = zonePercents([1, 1, 1, 0, 0])
+  assert.equal(pct.reduce((a, b) => a + b, 0), 100)
+  assert.equal(pct[3], 0)
+})
+
+test('records: longest match, point streak, wins in a row, matches in a week; celebrated from the 4th (ROAST-v2 5)', () => {
+  const day = 86400000
+  const mon = new Date(2026, 9, 19, 18, 0).getTime()
+  const m = (i, dur, won, streak) => ({ id: 'r' + i, start: mon + i * day, dur, winner: won ? 0 : 1, stats: { streak: [streak, 1] } })
+  const h = [m(0, 3000, true, 5), m(1, 4000, true, 7), m(2, 2000, false, 3), m(3, 3500, true, 4)]
+  const r = records(h)
+  assert.deepEqual([r.longest.value, r.streak.value, r.winRun.value, r.week.value], [4000, 7, 2, 4])
+  assert.equal(r.longest.at, h[1].start)
+  assert.deepEqual(newRecords(h.slice(0, 2), m(2, 9000, true, 9)), [], 'the first matches are not celebrated')
+  const next = m(4, 5000, true, 2)
+  assert.deepEqual(newRecords(h, next).map((x) => x.kind), ['longest', 'week'])
+  assert.deepEqual(newRecords(h.concat([next]), next).map((x) => x.kind), ['longest', 'week'], 'the match already in the history')
 })
 
 // ---------------------------------------------------------------- free trial and KiezelPay (phase 5)

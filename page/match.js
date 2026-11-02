@@ -23,6 +23,8 @@ import { startMonitor, stopMonitor, markAlive, markGone, takeBg } from '../utils
 import { countMatch } from '../utils/licence'
 import { view, addPoint, undo, setServer, endMatch, duration, pointPreview, idle } from '../shared/match'
 import { makeRecord, addHr, mergeHr } from '../shared/record'
+import { hrMaxOf, zonesFromCurve } from '../shared/insights'
+import { getProfile } from '@zos/user'
 import { teamName, partnerName } from '../shared/setups'
 import { clock } from '../shared/format'
 import { t } from '../shared/i18n'
@@ -198,6 +200,10 @@ Page({
     st.m.hr = st.hr
     // the match ends at its last point (or a minute after it, when it was ended much later)
     const rec = makeRecord(st.m, st.m.start + duration(st.m, now, true) * 1000)
+    // heart rate zones, from the maximum set then (ROAST-v2 item 4)
+    const max = hrMaxOf(st.v, age())
+    const zones = zonesFromCurve(rec.curve, rec.dur, max)
+    if (zones) rec.zones = { max, sec: zones }
     putMatch(rec)
     countMatch(rec)
     clearActive()
@@ -464,6 +470,15 @@ Page({
     )
   }
 })
+
+// the wearer's age from the Zepp profile (0 when the watch doesn't say)
+function age() {
+  try {
+    return Number(getProfile().age) || 0
+  } catch (e) {
+    return 0
+  }
+}
 
 // width (design units) of the circle at a text line centered on design y, with a margin
 function chordAt(cy, h) {

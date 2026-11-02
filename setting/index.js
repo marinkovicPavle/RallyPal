@@ -18,6 +18,8 @@ import { clock, hm, timeOfDay, dayLabel, prettyScore, percent, resultOf } from '
 import { VERSION, AUTHOR, AUTHOR_SITE, AUTHOR_URL, SUPPORT_EMAIL, feedbackMail } from '../shared/about'
 import { t, setLang, LANGS, LANG_NAMES } from '../shared/i18n'
 import { trialOf, canEdit, FREE_MATCHES, PRICE, PAY_URL, RESTORE_URL } from '../shared/licence'
+import { ZONE_COLORS, zonePercents, records, RECORDS } from '../shared/insights'
+import { recordLabel, recordValue } from '../shared/stats'
 import { TEXT } from './text'
 import { MARKERS } from './markers'
 import { gettext } from 'i18n'
@@ -221,6 +223,21 @@ function linked(sentence, url, size, color) {
     if (i < parts.length - 1) out.push(Link({ source: `https://${url}` }, [Text({ style: { ...style, color: PURPLE, fontWeight: 'bold', textDecoration: 'underline' } }, url)]))
   })
   return View({}, out)
+}
+
+function hex(n) {
+  return '#' + ('000000' + n.toString(16)).slice(-6)
+}
+
+// Heart rate zones: one bar of five colors and the percent of each under it
+function zonesView(sec) {
+  const pct = zonePercents(sec)
+  return col([
+    row(sec.map((s, i) => (s ? View({ style: { flex: s, height: '12px', background: hex(ZONE_COLORS[i]), borderRadius: '3px', marginRight: '3px' } }, []) : null)),
+      { alignItems: 'stretch' }),
+    row(pct.map((x, i) => View({ style: { flex: 1, textAlign: 'center' } }, [txt(`${t('zone.n', { n: i + 1 })} ${x}%`, 11, sec[i] ? hex(ZONE_COLORS[i]) : GRAY,
+      { fontWeight: 'bold' })])), { marginTop: '6px' })
+  ])
 }
 
 function chip(symbol, symbolColor, text) {
@@ -619,6 +636,8 @@ AppSettingsPage({
     const out = []
     if (r.curve && r.curve.length > 2) out.push(this.hrChart(r))
     if (r.ev && r.ev.length) out.push(this.flowChart(r))
+    // heart rate zones (v2), saved by the watch with the match
+    if (r.zones && r.zones.sec && r.zones.sec.some((x) => x > 0)) out.push(panel(p('hist.zones'), `max ${r.zones.max}`, [zonesView(r.zones.sec)]))
     out.push(this.statRows(r))
     out.push(this.matchNames(r))
     const asking = this.storage().getItem('uiDeleteMatch') === r.id
@@ -768,7 +787,22 @@ AppSettingsPage({
       ['month', 'year', 'all'].map((k) => pill(p('f.' + k), k === range, () => this.ui('uiRange', k))))
     if (!all.length) return [filter, card([note(p('hist.empty'))])]
     if (!list.length) return [filter, card([note(p('st.empty'))])]
-    return [filter, header(p('st.bySport')), ...this.bySport(list), header(p('st.byOpp')), this.byOpponent(list), header(p('st.form')), this.form(list)]
+    return [filter, header(p('st.bySport')), ...this.bySport(list), header(p('st.byOpp')), this.byOpponent(list), header(p('st.form')), this.form(list),
+      header(p('st.records')), this.recordsCard(list)]
+  },
+
+  // Records (v2, as SaunaPal): the longest match, the longest run of points, the most wins in a row and the
+  // most matches in a week, with the day each was set
+  recordsCard(list) {
+    const rec = records(list)
+    return card(RECORDS.map((k) => {
+      const r = rec[k]
+      return row([
+        txt(recordLabel(k), 14, DARK, { flex: 1 }),
+        r ? txt(k === 'winRun' ? '' : dayLabel(r.at, Date.now()), 12, GRAY, { marginRight: '10px' }) : null,
+        txt(r ? recordValue(k, r.value) : '–', 15, INK, { fontWeight: 'bold' })
+      ], { padding: '10px 0', borderTop: `1px solid ${LINE}`, marginTop: '-1px' })
+    }))
   },
 
   bySport(list) {
@@ -921,6 +955,10 @@ AppSettingsPage({
         sw('tapPoints', p('tap.sub')),
         choose('screen', ['wrist', 'always'], p('screen.note'))
       ]),
+      header(p('h.zones')),
+      card(tr.licensed
+        ? [input(p('zones.max'), v.hrMax ? String(v.hrMax) : '', p('zones.maxHint'), (x) => this.set('hrMax', Number(x) || 0)), note(p('zones.note'))]
+        : [lockedLine(p('zones.max'), p('pay.full'))]),
       header(p('h.names')),
       card([tr.licensed
         ? input(p('myName'), v.myName, p('myName.hint', { you: t('team.you') }), (x) => this.set('myName', x))

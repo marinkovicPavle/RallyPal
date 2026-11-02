@@ -10,6 +10,7 @@ import {
 } from './ui'
 import { hasRole } from './keys'
 import { t } from '../shared/i18n'
+import { ZONE_COLORS, zonePercents } from '../shared/insights'
 
 const L = ROUND
   ? { titleY: 58, top: 110, w: 348, rowH: 56, gap: 8, tail: 150 }
@@ -243,3 +244,32 @@ export function keyGuide(onOk) {
   return { keys: { back: ok }, hints: {} }
 }
 
+
+// Heart rate zones as one bar of five colors, and with labels the percent of each under it. Returns the
+// design y under it.
+export function zonesBar(y, sec, width, labels) {
+  const bw = width || (ROUND ? 320 : 340)
+  const total = sec.reduce((a, b) => a + b, 0)
+  if (!total) return y
+  const x0 = CX - px(bw / 2)
+  const full = px(bw)
+  let sum = 0
+  let left = 0
+  const last = sec.reduce((k, s, i) => (s > 0 ? i : k), -1)
+  sec.forEach((s, i) => {
+    if (!s) return
+    sum += s
+    const right = Math.round((full * sum) / total)
+    const w = right - left - (i === last ? 0 : px(6))
+    if (w > 0) rect({ x: x0 + left, y: sy(y), w, h: px(labels ? 14 : 8) }, ZONE_COLORS[i], 3)
+    left = right
+  })
+  if (!labels) return y + 8
+  y += 20
+  const pct = zonePercents(sec)
+  const cw = bw / 5
+  pct.forEach((p, i) => {
+    text({ x: x0 + px(i * cw), y: sy(y), w: px(cw), h: px(24) }, `${t('zone.n', { n: i + 1 })} ${p}%`, 15, sec[i] ? ZONE_COLORS[i] : C.dim, { min: 11 })
+  })
+  return y + 26
+}

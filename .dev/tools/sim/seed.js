@@ -5,6 +5,7 @@
 import { newMatch, addPoint, endMatch, view } from '../../../shared/match'
 import { makeRecord } from '../../../shared/record'
 import { setupTitle } from '../../../shared/setups'
+import { zonesFromCurve } from '../../../shared/insights'
 
 export { view } from '../../../shared/match'
 export { setLang, t, LANG_NAMES } from '../../../shared/i18n'
@@ -45,8 +46,11 @@ export function playedMatch(setup, start, o) {
     const v = view(m)
     if (opts.want !== undefined && v.winner !== opts.want) continue
     m.hr = []
-    for (let s = 0; s <= (tm - start) / 1000; s += 5) m.hr.push([s, 112 + Math.round(26 * Math.sin(s / 240)) + Math.floor(r() * 14)])
-    return makeRecord(m, tm)
+    for (let s = 0; s <= (tm - start) / 1000; s += 5) m.hr.push([s, 118 + Math.round(40 * Math.sin(s / 240)) + Math.floor(r() * 14)])
+    const rec = makeRecord(m, tm)
+    const zones = zonesFromCurve(rec.curve, rec.dur, 190)
+    if (zones) rec.zones = { max: 190, sec: zones }
+    return rec
   }
   throw new Error('no seed gives that result')
 }

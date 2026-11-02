@@ -10,8 +10,10 @@ import { ROUND, KEYS, C, K, MX, px, sy, around, at, text, img, marker, markerSiz
   chord, HEART } from '../utils/ui'
 import { screen, toast } from '../utils/widgets'
 import { createNav, goPage, parseParams } from '../utils/nav'
-import { pointBuzz } from '../utils/feedback'
-import { getMatch, deleteMatch, loadOutbox, loadActive, saveActive, saveHr } from '../utils/data'
+import { pointBuzz, preview } from '../utils/feedback'
+import { getMatch, deleteMatch, loadOutbox, loadActive, saveActive, saveHr, loadHistory } from '../utils/data'
+import { newRecords } from '../shared/insights'
+import { recordLabel, recordValue } from '../shared/stats'
 import { startMonitor } from '../utils/bg'
 import { syncWithPhone } from '../utils/sync'
 import { trial, wasCounted } from '../utils/licence'
@@ -65,6 +67,14 @@ Page(
         // in the free trial: how many free matches are left, or that this was the last one (as SaunaPal)
         const c = wasCounted(st.rec.id)
         if (c.counted) toast(c.last ? t('trial.lastMatch') : trialLine(trial()))
+        // a record this match beat: a line and a short vibration (full version, as SaunaPal)
+        else if (trial().licensed) {
+          const nr = newRecords(loadHistory(), st.rec)[0]
+          if (nr) {
+            toast(t('rec.new', { what: `${recordLabel(nr.kind)} ${recordValue(nr.kind, nr.value)}` }))
+            setTimeout(() => !st.gone && preview('game'), 1500)
+          }
+        }
       }
       syncWithPhone(this, { onlyId: st.rec.id })
     },
