@@ -12,7 +12,9 @@ const PATTERN = {
   point: [70],
   game: [380],
   set: [220, 160, 220],
-  match: [260, 160, 260, 160, 260]
+  match: [260, 160, 260, 160, 260],
+  // four short pulses: change ends (unlike every point, game, set and match vibration)
+  ends: [70, 90, 70, 90, 70, 90, 70]
 }
 const SETTING = { point: 'vibePoint', game: 'vibeGame', set: 'vibeSet', match: 'vibeMatch' }
 
@@ -56,6 +58,11 @@ export function pointBuzz(what) {
     on = settingsValues()[key] !== false
   } catch (e) {}
   if (on) play(PATTERN[what])
+}
+
+// Change ends: after the point's own vibration
+export function endsBuzz() {
+  later(() => play(PATTERN.ends), 900)
 }
 
 // a short pulse when a setting is switched, so the choice can be felt

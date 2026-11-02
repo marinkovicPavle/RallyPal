@@ -182,6 +182,9 @@ const en = {
   'about.version': 'Version {v}',
   'about.synced': 'Last synced with the watch: {when}',
   'about.notSynced': 'Not synced with the watch yet. Open RallyPal on the watch.',
+  // v2 (ROAST 14 and 15)
+  'ends.sub': 'A label and a vibration when the players change ends (tennis, padel, table tennis, badminton, pickleball).',
+  'tap.sub': 'Off: points only with the keys, against sweat and rain (watches with two or more keys).',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Free trial: {n} of {total} matches left',
   'pay.ended': 'Free trial ended',
@@ -373,6 +376,9 @@ const es = {
   'about.version': 'Versión {v}',
   'about.synced': 'Última sincronización con el reloj: {when}',
   'about.notSynced': 'Aún no sincronizado con el reloj. Abre RallyPal en el reloj.',
+  // v2 (ROAST 14 and 15)
+  'ends.sub': 'Un aviso y una vibración cuando toca cambiar de lado (tenis, pádel, tenis de mesa, bádminton, pickleball).',
+  'tap.sub': 'Desactivado: puntos solo con las teclas, contra el sudor y la lluvia (relojes con dos o más teclas).',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Prueba gratis: quedan {n} de {total} partidos',
   'pay.ended': 'Prueba gratis terminada',
@@ -563,6 +569,9 @@ const it = {
   'about.version': 'Versione {v}',
   'about.synced': 'Ultima sincronizzazione con l’orologio: {when}',
   'about.notSynced': 'Non ancora sincronizzato con l’orologio. Apri RallyPal sull’orologio.',
+  // v2 (ROAST 14 and 15)
+  'ends.sub': 'Una scritta e una vibrazione quando si cambia campo (tennis, padel, tennis tavolo, badminton, pickleball).',
+  'tap.sub': 'Disattivato: punti solo con i tasti, contro sudore e pioggia (orologi con due o più tasti).',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Prova gratuita: {n} di {total} partite rimaste',
   'pay.ended': 'Prova gratuita terminata',
@@ -751,6 +760,9 @@ const de = {
   'about.version': 'Version {v}',
   'about.synced': 'Zuletzt mit der Uhr synchronisiert: {when}',
   'about.notSynced': 'Noch nicht mit der Uhr synchronisiert. Öffne RallyPal auf der Uhr.',
+  // v2 (ROAST 14 and 15)
+  'ends.sub': 'Ein Hinweis und eine Vibration beim Seitenwechsel (Tennis, Padel, Tischtennis, Badminton, Pickleball).',
+  'tap.sub': 'Aus: Punkte nur mit den Tasten, gegen Schweiß und Regen (Uhren mit zwei oder mehr Tasten).',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Gratis-Test: noch {n} von {total} Matches',
   'pay.ended': 'Gratis-Test beendet',
@@ -942,6 +954,9 @@ const fr = {
   'about.version': 'Version {v}',
   'about.synced': 'Dernière synchro avec la montre : {when}',
   'about.notSynced': 'Pas encore synchronisé avec la montre. Ouvrez RallyPal sur la montre.',
+  // v2 (ROAST 14 and 15)
+  'ends.sub': 'Un texte et une vibration au changement de côté (tennis, padel, tennis de table, badminton, pickleball).',
+  'tap.sub': 'Désactivé : points seulement avec les touches, contre la sueur et la pluie (montres à deux touches ou plus).',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Essai gratuit : {n} matchs sur {total} restants',
   'pay.ended': 'Essai gratuit terminé',
@@ -1133,6 +1148,9 @@ const pt = {
   'about.version': 'Versão {v}',
   'about.synced': 'Última sincronização com o relógio: {when}',
   'about.notSynced': 'Ainda não sincronizado com o relógio. Abra o RallyPal no relógio.',
+  // v2 (ROAST 14 and 15)
+  'ends.sub': 'Um aviso e uma vibração na troca de lado (tênis, padel, tênis de mesa, badminton, pickleball).',
+  'tap.sub': 'Desligado: pontos só com os botões, contra suor e chuva (relógios com dois ou mais botões).',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Teste grátis: restam {n} de {total} partidas',
   'pay.ended': 'Teste grátis encerrado',
@@ -1333,6 +1351,9 @@ const sr = {
   'about.version': 'Verzija {v}',
   'about.synced': 'Poslednja sinhronizacija sa satom: {when}',
   'about.notSynced': 'Još nije sinhronizovano sa satom. Otvori RallyPal na satu.',
+  // v2 (ROAST 14 and 15)
+  'ends.sub': 'Natpis i vibracija kad se menja strana terena (tenis, padel, stoni tenis, badminton, pikleball).',
+  'tap.sub': 'Isključeno: poen samo tasterom, protiv znoja i kiše (satovi sa dva ili više tastera).',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Besplatna proba: preostalo {n} od {total} mečeva',
   'pay.ended': 'Besplatna proba je završena',

@@ -26,6 +26,10 @@ export const SETTINGS = [
   { key: 'vibeMatch', group: 'vibration', kind: 'bool', def: true },
   { key: 'serveDisplay', group: 'display', kind: 'enum', def: 'full', options: ['full', 'team'] },
   { key: 'labels', group: 'display', kind: 'bool', def: true },
+  // a label and a vibration when the players change ends (ROAST item 14)
+  { key: 'changeEnds', group: 'display', kind: 'bool', def: true },
+  // false: points only with the keys, a tap on the screen does nothing (ROAST item 15); watches with 2+ keys
+  { key: 'tapPoints', group: 'display', kind: 'bool', def: true },
   { key: 'screen', group: 'display', kind: 'enum', def: 'wrist', options: ['wrist', 'always'] },
   // auto: the watch's own language (decision 39)
   { key: 'lang', group: 'display', kind: 'enum', def: 'auto', options: ['auto', 'en', 'sr', 'es', 'it', 'de', 'fr', 'pt'] },

@@ -17,7 +17,7 @@ import {
 } from '../utils/ui'
 import { screen, heading, confirm, question, toast, LIST } from '../utils/widgets'
 import { createNav, goPage, quit } from '../utils/nav'
-import { pointBuzz, stopAll } from '../utils/feedback'
+import { pointBuzz, endsBuzz, stopAll } from '../utils/feedback'
 import { loadActive, saveActive, clearActive, putMatch, settingsValues, loadHr, saveHr } from '../utils/data'
 import { startMonitor, stopMonitor, markAlive, markGone, takeBg } from '../utils/bg'
 import { countMatch } from '../utils/licence'
@@ -163,6 +163,7 @@ Page({
     saveActive(st.m)
     if (res === 'match') return this.finish('summary')
     pointBuzz(res)
+    if (st.v.changeEnds !== false && view(st.m).changeEnds) endsBuzz()
     st.nav.redraw()
   },
 
@@ -180,12 +181,12 @@ Page({
   },
 
   // Saves the match (ended by hand when it is not over) and opens the summary, or the start screen for
-  // "New match". A match without a single point is not kept.
-  finish(next) {
+  // "New match". A match without a single point is not kept. winner: who won a match ended by hand.
+  finish(next, winner) {
     const st = this.state
     if (st.gone) return
     const now = Date.now()
-    endMatch(st.m, now)
+    endMatch(st.m, now, winner)
     st.gone = true
     stopMonitor()
     markGone()
@@ -238,12 +239,15 @@ Page({
       const room = R ? Math.min(380, chordAt(D.labelY, lh)) : 360
       at(MX, D.labelY, room, label, D.labelSize, C.lime, 'mm', { min: 15 })
     }
-    // a tap on a half of the screen is that side's point; the buttons in the middle stay free
+    // a tap on a half of the screen is that side's point; the buttons in the middle stay free. "Points by
+    // tap" off: only the keys give points (a watch with one key always keeps the taps)
     const [ux, mx, bw, bh] = D.btn
     const gapTop = sy(D.midY - bh / 2) - px(6)
     const gapBottom = sy(D.midY + bh / 2) + px(6)
-    cover({ x: 0, y: 0, w: W, h: gapTop }, () => this.point(1))
-    cover({ x: 0, y: gapBottom, w: W, h: H - gapBottom }, () => this.point(0))
+    if (st.v.tapPoints !== false || KEYS < 2) {
+      cover({ x: 0, y: 0, w: W, h: gapTop }, () => this.point(1))
+      cover({ x: 0, y: gapBottom, w: W, h: H - gapBottom }, () => this.point(0))
+    }
     // the line through the middle, broken where the buttons are
     const ly = sy(D.midY) - px(1)
     const l0 = D.line[0]
@@ -365,6 +369,13 @@ Page({
   // total the points still to play
   labelText(v) {
     const st = this.state
+    const ends = v.changeEnds && st.v.changeEnds !== false ? t('label.change_ends') : ''
+    const base = this.pointLabel(v)
+    return ends && base ? `${ends} · ${base}` : ends || base
+  },
+
+  pointLabel(v) {
+    const st = this.state
     const lab = v.label && st.v.labels ? t('label.' + v.label.key) : ''
     if (v.model === 'sideout') return lab ? `${v.call} · ${lab}` : v.call || ''
     if (v.model === 'total') return lab || t('label.left', { n: v.left })
@@ -413,9 +424,28 @@ Page({
     return question({ question: t('serve.now'), options, back: () => nav.back() }, nav)
   },
 
+  // End match, then who won (ROAST item 17): a retirement or the court time running out still counts.
+  // A round to a total has its winner by the points; a match without a point has none to ask about.
   confirmEnd(nav) {
-    return confirm(
-      { title: t('end.title'), body: t('end.body'), ok: t('end.ok'), okColor: C.red, cancel: t('cancel'), onOk: () => this.finish('summary') },
+    const v = view(this.state.m)
+    const ask = v.model !== 'total' && v.rallies > 0
+    const onOk = ask ? () => nav.push((n) => this.whoWon(n)) : () => this.finish('summary')
+    return confirm({ title: t('end.title'), body: t('end.body'), ok: t('end.ok'), okColor: C.red, cancel: t('cancel'), onOk }, nav)
+  },
+
+  whoWon(nav) {
+    const m = this.state.m
+    const names = m.names || {}
+    return question(
+      {
+        question: t('won.title'),
+        options: [
+          { label: teamName(1, names, m.doubles), onPick: () => this.finish('summary', 1) },
+          { label: teamName(0, names), onPick: () => this.finish('summary', 0) },
+          { label: t('won.none'), onPick: () => this.finish('summary', null) }
+        ],
+        back: () => nav.back()
+      },
       nav
     )
   },

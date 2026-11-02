@@ -8,6 +8,7 @@
 // Events: ['p', winner, sec]           a rally won by team `winner`
 //         ['s', team, player, sec]     server changed by hand (menu)
 //         ['e', sec]                   match ended by hand before anyone won
+//         ['e', winner, sec]           ... and the players said who won (retirement, court time over)
 // sec = seconds since the start of the match
 
 import { isSport, sanitizeRules, sanitizeDoubles, paramsOf } from './rules'
@@ -60,12 +61,13 @@ export function setServer(m, team, player, now) {
   return true
 }
 
-export function endMatch(m, now) {
+// winner: 0 or 1 when the players say who won a match ended by hand (ROAST item 17), else no result
+export function endMatch(m, now, winner) {
   if (replay(m).done) return false
   const last = lastSec(m)
   let sec = secOf(m, now)
   if (sec - last > IDLE_END_S) sec = last + END_GRACE_S
-  m.ev.push(['e', sec])
+  m.ev.push(winner === 0 || winner === 1 ? ['e', winner, sec] : ['e', sec])
   return true
 }
 
@@ -130,7 +132,7 @@ export function flowMarks(m) {
       wins.push(e[1])
       if (st.model !== 'total' && (st.last === (st.model === 'tennis' ? 'set' : 'game') || st.last === 'match')) ends.push(wins.length)
     } else if (e[0] === 's') applyServer(st, e[1], e[2])
-    else if (e[0] === 'e') endNow(st)
+    else if (e[0] === 'e') endNow(st, e.length > 2 ? e[1] : null)
   }
   return { wins, ends }
 }
@@ -141,7 +143,7 @@ export function replay(m) {
     const e = m.ev[i]
     if (e[0] === 'p') pointTo(st, e[1])
     else if (e[0] === 's') applyServer(st, e[1], e[2])
-    else if (e[0] === 'e') endNow(st)
+    else if (e[0] === 'e') endNow(st, e.length > 2 ? e[1] : null)
   }
   return st
 }
@@ -178,6 +180,8 @@ function init(m) {
     pend: P.model === 'rally' && m.doubles && m.first === 1 ? 0 : -1,
     mine: m.mine,
     swapped: false, // table tennis doubles: the receivers' order changed in the deciding game
+    ends: false, // the players change ends before the next rally
+    midEnds: false, // ... done halfway through the last game
     num: 1, // pickleball server number
     sp: 0, // pickleball serving player
     side: 'R', // squash serving side
@@ -248,7 +252,9 @@ function turn(st, team, newGame, side) {
 function pointTo(st, w) {
   if (st.done) return
   const sv = serverOf(st)
+  const before = Math.max(st.p[0], st.p[1])
   st.last = 'point'
+  st.ends = false
   count(st, sv.team, w)
   if (sv.fresh) st.turns[sv.team]++
   st.lastSrv = sv.team
@@ -256,6 +262,35 @@ function pointTo(st, w) {
   else if (st.model === 'total') totalPoint(st, w)
   else if (st.model === 'sideout') sideoutPoint(st, w)
   else rallyPoint(st, sv.team, w)
+  changeEnds(st, before)
+}
+
+// Whether the players change ends now (ROAST item 14), by the rules of each sport:
+//   tennis, padel  after every odd game of the match (a tie-break counts as one game), and every 6 points
+//                  in a tie-break
+//   table tennis, badminton, pickleball  after every game, and in the last possible game when a side first
+//                  reaches half of the game (5 of 11 in table tennis, 11 of 21 in badminton, 6 of 11 in
+//                  pickleball); a single pickleball game to 15 or 21 changes at 8 or 11
+//   squash and a round to a total: no change of ends
+function changeEnds(st, before) {
+  if (st.done || st.model === 'squash' || st.model === 'total') return
+  if (st.model === 'tennis') {
+    if (st.last === 'game' || st.last === 'set') st.ends = st.gi % 2 === 1
+    else if (st.tb) st.ends = (st.p[0] + st.p[1]) % 6 === 0
+    return
+  }
+  if (st.last === 'game') {
+    st.ends = true
+    return
+  }
+  const P = st.P
+  if (st.midEnds || st.won[0] !== P.win - 1 || st.won[1] !== P.win - 1) return
+  if (P.win === 1 && P.to < 15) return
+  const half = st.model === 'tt' ? (P.to === 21 ? 10 : 5) : Math.ceil(P.to / 2)
+  if (before < half && Math.max(st.p[0], st.p[1]) >= half) {
+    st.midEnds = true
+    st.ends = true
+  }
 }
 
 function count(st, server, w) {
@@ -423,17 +458,18 @@ function finish(st, w) {
   st.last = 'match'
 }
 
-function endNow(st) {
+function endNow(st, winner) {
   if (st.done) return
   st.done = true
   st.ended = true
   st.last = 'match'
+  st.ends = false
   // a round stopped by the clock still has a winner
   if (st.model === 'total') {
     const lead = st.p[0] - st.p[1]
     if (lead) st.winner = lead > 0 ? 0 : 1
     else st.draw = true
-  }
+  } else if (winner === 0 || winner === 1) st.winner = winner
 }
 
 // Server changed by hand: the next rally is served by `team` (and `player` in doubles); the order
@@ -441,6 +477,7 @@ function endNow(st) {
 function applyServer(st, team, player) {
   if (st.done) return
   st.last = null
+  st.ends = false
   const n = st.p[0] + st.p[1]
   if (st.model === 'tennis' || st.model === 'tt' || st.model === 'total') {
     if (serverOf(st).team !== team) st.shift ^= 1
@@ -547,6 +584,7 @@ export function view(m) {
     call: sv && st.model === 'sideout' ? callOf(st, sv) : null,
     left: st.model === 'total' ? st.P.total - st.p[0] - st.p[1] : null,
     label: labelOf(st),
+    changeEnds: !!st.ends && !st.done,
     decisive: decisive(st),
     last: st.last,
     rallies: s.pts[0] + s.pts[1],

@@ -27,7 +27,7 @@ export const KPAY_TEST = false
 export const TRIAL_URL = 'https://rallypal-trial.svadba-media.workers.dev/v1/trial'
 
 // Settings that can be changed during the trial; the rest keep what they have until the app is unlocked
-export const FREE_KEYS = ['vibePoint', 'vibeGame', 'vibeSet', 'vibeMatch', 'serveDisplay', 'labels', 'screen', 'lang']
+export const FREE_KEYS = ['vibePoint', 'vibeGame', 'vibeSet', 'vibeMatch', 'serveDisplay', 'labels', 'changeEnds', 'tapPoints', 'screen', 'lang']
 // ... and after it: the app must stay readable
 export const ALWAYS_KEYS = ['lang']
 

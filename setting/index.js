@@ -917,6 +917,8 @@ AppSettingsPage({
       card([
         choose('serveDisplay', ['full', 'team']),
         sw('labels', p('labels.sub')),
+        sw('changeEnds', p('ends.sub')),
+        sw('tapPoints', p('tap.sub')),
         choose('screen', ['wrist', 'always'], p('screen.note'))
       ]),
       header(p('h.names')),

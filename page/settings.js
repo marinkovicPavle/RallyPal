@@ -5,7 +5,7 @@
 // language is read-only, and a tap on one opens the unlock screen.
 
 import { BasePage } from '@zeppos/zml/base-page'
-import { ROUND, C, MX, mid, at, text, qrCode, px } from '../utils/ui'
+import { ROUND, KEYS, C, MX, mid, at, text, qrCode, px } from '../utils/ui'
 import { LIST, list, choice, toast, keyGuide, screen, heading } from '../utils/widgets'
 import { createNav, goPage } from '../utils/nav'
 import { preview } from '../utils/feedback'
@@ -50,6 +50,19 @@ Page(
       goPage('unlock', { from: 'settings' })
     },
 
+    // an on / off setting: a tap switches it
+    toggleRow(nav, key, v, onText, offText) {
+      return {
+        label: t('set.' + key),
+        sub: v[key] ? onText : offText || t('off'),
+        subColor: v[key] ? C.lime : C.gray,
+        onTap: () => {
+          saveSetting(key, !settingsValues()[key])
+          nav.redraw()
+        }
+      }
+    },
+
     // a row of a setting that can't be changed now (after the free trial) shows its value in gray and
     // opens the unlock screen
     guard(key, row) {
@@ -75,6 +88,9 @@ Page(
             nav.redraw()
           }
         }),
+        this.guard('changeEnds', this.toggleRow(nav, 'changeEnds', v, t('opt.changeEnds.on'))),
+        // a watch with one key needs the taps (its key opens the menu)
+        KEYS >= 2 ? this.guard('tapPoints', this.toggleRow(nav, 'tapPoints', v, t('opt.tapPoints.on'), t('opt.tapPoints.off'))) : null,
         this.guard('screen', { label: t('set.screen'), sub: this.option('screen', v.screen), onTap: () => this.pick(nav, 'screen') }),
         { label: t('set.language'), sub: this.langName(v.lang), onTap: () => nav.push((n) => this.language(n)) },
         { label: t('set.phone'), sub: t('set.phoneSub'), subColor: C.gray, onTap: () => nav.push((n) => this.phone(n)) },

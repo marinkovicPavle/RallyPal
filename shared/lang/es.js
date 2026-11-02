@@ -184,6 +184,15 @@ export default {
   'out.by': 'Registrado con RallyPal',
 
   // free trial and unlock (shared/licence.js, page/unlock.js)
+  // v2: change ends, points by tap, who won (ROAST 14, 15, 17)
+  'label.change_ends': 'CAMBIO DE LADO',
+  'set.changeEnds': 'Cambio de lado',
+  'opt.changeEnds.on': 'Aviso y vibración',
+  'set.tapPoints': 'Puntos con toque',
+  'opt.tapPoints.on': 'Toque en una mitad',
+  'opt.tapPoints.off': 'Solo teclas',
+  'won.title': '¿Quién ganó?',
+  'won.none': 'Sin resultado',
   'trial.left': 'Partidos gratis restantes: {n}',
   'trial.ended': 'Prueba gratis terminada',
   'home.unlock': 'DESBLOQUEAR',

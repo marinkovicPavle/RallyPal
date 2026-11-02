@@ -188,6 +188,15 @@ export default {
   'out.by': 'Zabeleženo u aplikaciji RallyPal',
 
   // free trial and unlock (shared/licence.js, page/unlock.js)
+  // v2: change ends, points by tap, who won (ROAST 14, 15, 17)
+  'label.change_ends': 'PROMENA STRANE',
+  'set.changeEnds': 'Promena strane',
+  'opt.changeEnds.on': 'Natpis i vibracija',
+  'set.tapPoints': 'Poen dodirom',
+  'opt.tapPoints.on': 'Dodir na polovinu ekrana',
+  'opt.tapPoints.off': 'Samo tasteri',
+  'won.title': 'Ko je pobedio?',
+  'won.none': 'Bez rezultata',
   'trial.left': 'Preostalo besplatnih mečeva: {n}',
   'trial.ended': 'Besplatna proba je završena',
   'home.unlock': 'OTKLJUČAJ',

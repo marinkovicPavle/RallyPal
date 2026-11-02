@@ -632,6 +632,9 @@ async function walk(device, lang) {
   await w.tap(tt('match.menu'))
   await w.tap(tt('menu.end'))
   await w.tap(tt('end.ok'))
+  // who won a match ended by hand (ROAST 17)
+  w.shot('Who won?')
+  await w.tap(tt('won.none'))
   if (w.name !== 'summary') throw new Error(w.where() + ' End match')
   w.shot('Summary, ended by hand')
   await w.advance(2)
@@ -652,9 +655,17 @@ async function walk(device, lang) {
   await startMatch(w, 'tt', 1, 0)
   await playUntil(w, r, (x) => x.server === 0)
   w.shot('Table tennis doubles')
+  // the end of the first game: change ends
+  await playUntil(w, r, (x) => x.changeEnds)
+  w.shot('Match, change ends')
+  if (!w.shows(tt('label.change_ends'))) throw new Error(w.where() + ' no CHANGE ENDS')
   await w.tap(tt('match.menu'))
   await w.tap(tt('menu.end'))
   await w.tap(tt('end.ok'))
+  // a retirement: the opponents won
+  await w.tap(S.teamName(1, { opponent: '' }, true))
+  if (S.view(JSON.parse(w.files['history.json'])[0]).winner !== 1) throw new Error(w.where() + ' the winner of a match ended by hand')
+  w.shot('Summary, opponents won by retirement')
   await w.advance(2)
   await w.tap(tt('sum.done'))
   w.shot('Start, table tennis doubles chosen')
@@ -757,6 +768,20 @@ async function walk(device, lang) {
   if (w.allLog.indexOf('brightTime') < 0) throw new Error(w.where() + ' "Always on" did not keep the screen on')
   await playUntil(w, r, (x) => x.games[0] + x.games[1] >= 3)
   w.shot('Match, only who serves, no labels')
+  // "Points by tap" off: a tap on a half does nothing on watches with keys; a one-key watch keeps the taps
+  const set = JSON.parse(w.files['settings.json'])
+  set.values.tapPoints = false
+  set.stamps.tapPoints = w.now
+  w.files['settings.json'] = JSON.stringify(set)
+  w.open('match')
+  const before = S.view(w.match()).rallies
+  const top = w.visible().filter((x) => x.type === 'BUTTON' && x.props.y === 0)
+  if (K >= 2 && top.length) throw new Error(w.where() + ' taps still give points with "Keys only"')
+  if (K < 2 && !top.length) throw new Error(w.where() + ' a one-key watch lost its taps')
+  if (K >= 2) {
+    await w.key('SELECT')
+    if (S.view(w.match()).rallies !== before + 1) throw new Error(w.where() + ' the key no longer gives the point')
+  }
   return w
 }
 
