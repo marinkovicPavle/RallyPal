@@ -1,4 +1,4 @@
-RallyPal Privacy Statement (November 2026, version 2.0)
+RallyPal Privacy Statement (November 2026)
 
 RallyPal keeps score for racket sports on Zepp OS watches. It is made by Pavle Marinković (pavlemarinkovic.com).
 

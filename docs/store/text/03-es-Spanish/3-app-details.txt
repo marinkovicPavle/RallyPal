@@ -1,5 +1,5 @@
-Marcador para tenis, pádel, pickleball, tenis de mesa, squash y bádminton, además de rondas Americano de pádel. Una tecla o un toque en tu mitad de la pantalla suma el punto; RallyPal sigue el saque y el lado, también en dobles, anuncia set, break y match point y vibra en cada juego y set. Pulso, resumen tras cada partido, historial en el reloj y el teléfono, estadísticas, envío opcional a Strava e Intervals.icu.
+Marcador para tenis, pádel, pickleball, tenis de mesa, squash y bádminton, y rondas Americano de pádel. Una tecla o un toque en tu mitad de pantalla suma el punto; RallyPal sigue el saque y el lado, también en dobles, anuncia set, break y match point y vibra en cada juego, set y cambio de lado. Cuenta atrás del descanso, aces y dobles faltas, zonas de pulso, récords, historial y estadísticas en reloj y teléfono, Strava e Intervals.icu opcionales. En 17 idiomas.
 
-3 partidos gratis y luego un desbloqueo único de $2.99 con KiezelPay: el reloj muestra un código, se paga en kzl.io/code. Sin suscripción.
+3 partidos gratis y luego desbloqueo único de $2.99 con KiezelPay. Sin suscripción.
 
 Creado por Pavle (pavlemarinkovic.com)

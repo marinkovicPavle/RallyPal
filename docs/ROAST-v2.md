@@ -2,7 +2,9 @@
 
 v1 (1.0.0) je predat na recenziju 2. 11. iz commita 56677d0, grana `claude/rallypal-1.0-store`. Ta grana ostaje kakva je: ako Zepp odbije v1, ispravka ide tamo. v2 se radi na grani `claude/rallypal-2.0` (verzija 2.0.0, isti appId 1134434, pa se instalira preko v1 i čuva istoriju).
 
-**2. 11. 2026, uveče:** urađeno 1 do 6, 8, 11, 12, 13 i 22 (odluke 49 i 50 u [dogovor.md](dogovor.md)); predaja po [SUBMIT-2.0.md](SUBMIT-2.0.md). Otvoreno: 7, 9, 10, 14 do 21, 23 i 24.
+**3. 11. 2026:** v1 je povučen, sve ide u jednu prvu verziju 1.0.0 na grani `claude/rallypal-release` (odluke 51 i 52). Urađeno još 7, 9, 10, 15, 16, 17, 18 i 19; 24 je A (svaki kupac pravi svoju Strava aplikaciju, napomena o pretplati je u uputstvu). Predaja po [SUBMIT.md](SUBMIT.md). Otvoreno: 14, 20, 21 i 23.
+
+**2. 11. 2026, uveče:** urađeno 1 do 6, 8, 11, 12, 13 i 22 (odluke 49 i 50 u [dogovor.md](dogovor.md)); predaja tada po SUBMIT-2.0.md (zamenjen sa SUBMIT.md 3. 11.). Otvoreno: 7, 9, 10, 14 do 21, 23 i 24.
 
 Ti biraš brojeve, ništa novo ne pravim dok ne izabereš. Za sve što menja izgled prvo dobijaš elemente, pa sliku, pa tek onda kod, kao do sada. Uz svaku stavku piše koliki je posao, da li ide u besplatnu probu ili u punu verziju i šta nije provereno.
 

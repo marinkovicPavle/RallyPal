@@ -1,146 +1,132 @@
-# RallyPal 1.0: predaja u Zepp store, korak po korak
+# RallyPal 1.0.0: predaja u Zepp store, korak po korak
 
-Sve što se kuca ili lepi je ispod, spremno za kopiranje. Tekstovi su u `docs/store/text/` (pravi ih `.dev/tools/store_text.py`, koji proverava i dužine), slike u `docs/store/` (pravi ih `.dev/tools/store.py` iz simulatora).
+Prva verzija koja ide u prodavnicu, sa svim što je urađeno posle povlačenja prve predaje: 17 jezika, podešavanje u 3 koraka na prvom pokretanju, ručni unos meča sa telefona, istorija u fajlovima po meču, puls koji se ne gubi pri podizanju ruke, odbrojavanje odmora, početak meča od zatečenog rezultata, statistika servisa, promena strane, zone pulsa, rekordi i OTKLJUČAJ na kraju meča.
 
-## A. Pre predaje (ti)
+- Grana: **`claude/rallypal-release`** (stare grane `claude/rallypal-1.0-store` i `claude/rallypal-2.0` se više ne koriste).
+- appId **1134434**, verzija **1.0.0** (code 1), KiezelPay App ID **2025865549**.
+- Tekstovi: `docs/store/text/` (folder po jeziku, `01-en-English` do `17-ja-Japanese`, i `00-common`). Pravi ih `.dev/tools/store_text.py`, koji proverava i dužine.
+- Slike: `docs/store/screenshots/<folder jezika>/round` i `square`, po 6 (`1-match.png` do `6-history.png`), ikonica `docs/store/icon-240.png`. Pravi ih `.dev/tools/store.py` iz simulatora.
 
-### 1. Zepp appId
+## A. Pre predaje (ti, na Macu)
 
-console.zepp.com > **My Service > Application > Create App**, ime **RallyPal**, tip Mini Program (App). appId je broj u prvoj koloni (za SaunaPal je bio 1131485). Ako ime nije slobodno, javi mi pa biramo drugo.
+KiezelPay proizvod i Zepp aplikacija su već napravljeni (2. 11.), ništa se tu ne menja. Servis za probu: https://rallypal-trial.svadba-media.workers.dev u pregledaču treba da pokaže "RallyPal trial service".
 
-**Urađeno 2. 11.:** aplikacija RallyPal napravljena, appId **1134434** je upisan u `app.json`.
-
-### 2. KiezelPay proizvod
-
-kiezelpay.com > **ADD NEW > Add New Product**:
-
-- **Product Image, Amazfit:** `docs/store/kiezelpay-logo.png` (ikonica aplikacije, kao za SaunaPal). Fitbit, Garmin i Pebble prazni.
-- **Name of Product:**
 ```
-RallyPal
+cd ~/Claude/rallypal-repo && git fetch origin && git checkout claude/rallypal-release && git pull
 ```
-- **Description for Product:**
+Ako `~/Claude/rallypal-repo` ne postoji:
 ```
-Full version of RallyPal for Zepp OS watches: score keeping for tennis, padel, pickleball, table tennis, squash and badminton, your own setups and rule variants, player names, stats, Strava and Intervals.icu sync. One-time purchase, no subscription.
-```
-- **Price of Product:**
-```
-2.99
-```
-- **Fitbit / Garmin / Pebble Appstore Url, Custom Domain:** prazno. **Amazfit Appstore Url:** prazno sada, upisuje se link iz store-a kad Zepp odobri.
-- **Custom Product Note:**
-```
-Thanks for supporting RallyPal! This is a one-time purchase, not a subscription. Keep RallyPal open on your watch, with the Zepp app running on your phone, until it shows "Unlocked".
-```
-- Štikliraj izjavu o pravima, **CREATE PRODUCT**. KiezelPay trial, ako ga nudi, ostavi isključen (3 besplatna meča broji RallyPal).
-
-**Urađeno 2. 11.:** proizvod RallyPal napravljen, KiezelPay App ID **2025865549** je upisan u `shared/licence.js` (`KPAY_APP_ID`).
-
-### 3. Kod na Macu
-
-zeus pakuje svaki fajl koji nađe van skrivenih foldera, pa `docs/` i `arhiva/` ne smeju biti pored aplikacije kad se pravi ZAB. Zato se aplikacija kopira u poseban folder:
-```
-cd ~/Claude && git clone -b claude/rallypal-1.0-store https://github.com/marinkovicPavle/RallyPal rallypal-repo
+cd ~/Claude && git clone -b claude/rallypal-release https://github.com/marinkovicPavle/RallyPal rallypal-repo
 ```
 ```
 cd ~/Claude/rallypal-repo && bash .dev/tools/build-copy.sh ~/Claude/rallypal-store
 ```
 ```
-cd ~/Claude/rallypal-store && npm install
+cd ~/Claude/rallypal-store && npm install && grep "KPAY_TEST =" shared/licence.js && grep '"name": "1' app.json && zeus build && ls -t dist/*.zab | head -1
 ```
-Kad se nešto promeni u `rallypal-repo` (`git pull`), ponovo pusti `build-copy.sh`.
+Mora da piše `KPAY_TEST = false` i `"name": "1.0.0"`. Poslednja linija je fajl za upload, ime počinje sa `1134434-RallyPal-1.0.0-`.
 
-### 4. Probna kupovina (preporuka, 10 minuta)
+Preporuka pre predaje (`zeus preview`, 10 minuta): prvo pokretanje (tri pitanja), jedan meč stonog tenisa do prve promene strane i odmora, pa Meni > Kraj meča > "Ko je pobedio?". Za probnu kupovinu: `KPAY_TEST = true`, Podešavanja > Otključaj RallyPal, kod na kzl.io/code, pa **obavezno** nazad na `false` i ponovo `zeus build`.
 
-1. U `~/Claude/rallypal-store/shared/licence.js` stavi `KPAY_TEST = true`.
-2. `zeus preview` i otvori RallyPal na satu. Settings > **Unlock RallyPal**: sat pokaže kod.
-3. Na kzl.io/code upiši kod: u test režimu KiezelPay pušta kupovinu bez plaćanja. Sat posle par sekundi kaže **Unlocked**.
-4. Vrati `KPAY_TEST = false`. **Obavezno pre `zeus build`**, inače bi u store otišla verzija koja otključava bez plaćanja.
+Nije provereno na pravom satu: kupovina kroz KiezelPay, Strava i Intervals.icu na pravom telefonu, baterija na meču od sat vremena.
 
-Usput odigraj jedan kratak meč i proveri da ide kako treba. Nije provereno na pravom satu: kupovina kroz KiezelPay za RallyPal, Strava i Intervals.icu na pravom telefonu, baterija na meču od sat vremena.
+## B. Na konzoli (forma "App Release", posle povlačenja)
 
-Napomena: probni appId 1099458 i pravi appId su za sat dve različite aplikacije, pa istorija iz probe ne prelazi u pravu.
+Otvori RallyPal na console.zepp.com i uđi u izmenu povučene verzije (Edit). Ako konzola traži veći broj verzije od 1.0.0, stani i javi mi: podići ću na 1.0.1.
 
-### 5. Finalni build
-
+1. **App Installation Package:** novi `.zab` (zameni stari). **Version No.** 1.0.0.
+2. **payment status** in app purchase, **In-app payment mode** **Kiezepay**, **Publish Area** Global, **Service Category** Common, **App Classification** Sports (ili Health & Fitness ako Sports ne postoji).
+3. **App Language:** English (Default) ostaje. Chinese (Simplified) i Chinese (Traditional) ne štikliraj. U meniju **Please select other languages** izaberi ovih 16: Serbian, Spanish, Italian, German, French, Portuguese, Dutch, Polish, Czech, Ukrainian, Russian, Swedish, Norwegian, Danish, Finnish, Japanese. Ako nekog nema u meniju, preskoči ga (na satu ga aplikacija i dalje ima) i javi mi koji. Portugalski tekst je brazilski: ako postoje i Portuguese (Brazil) i Portuguese (Portugal), stavi ga za Brazil.
+4. **Blok za svaki jezik** (prvo English, pa ostali redom iz tabele):
+   - **App Name:** `RallyPal` (`1-app-name.txt`)
+   - **App Introduction** (do 40): `2-app-introduction.txt`
+   - **App Details** (do 600): `3-app-details.txt`
+   - **round screenshots:** ako su ostale stare slike, obriši ih (X na slici), pa `screenshots/<folder>/round/1-match.png` do `6-history.png`, redom
+   - **square screenshots:** isto, `screenshots/<folder>/square/1-match.png` do `6-history.png`
+   - Ako blok ima i **New Version Introduction** i ne da da ostane prazno, upiši isti tekst kao App Introduction.
+5. **App Icon:** `docs/store/icon-240.png`.
+6. **Privacy Statement:** ceo `00-common/privacy.txt` (1729 znakova). Novo u odnosu na prvu predaju: godine iz Zepp profila za zone pulsa.
+7. **Call Permission:** **Heart Rate**, **Connect to the network**, **Run in background**, **Others**; ako postoji posebno polje za podatke o korisniku (User info / Personal information), štikliraj i njega. **None** i **Positioning** ne. Tekst uz Others (`00-common/call-permission-others.txt`):
 ```
-cd ~/Claude/rallypal-store && zeus build
+Device ID (free trial count, sent only as a one-way hash), age from the user profile (heart rate zones).
 ```
-Fajl za upload je u `~/Claude/rallypal-store/dist/` i završava se na `.zab`.
+8. **Whether the installation package includes SDK:** **No**; ako traži opis, `00-common/sdk.txt`. **Full music playback:** **No**.
+9. **Features Descriptions:** ceo `00-common/features-descriptions.txt` (1152 znakova).
+10. **Work Statement:** štiklirano. **Submit for Approval** klikćeš ti (6 predaja nedeljno, resetuje se u ponedeljak).
 
-## B. Na konzoli (forma "App Release")
+### Jezici
 
-Proveri da stoji: payment status **in app purchase**, In-app payment mode **Kiezepay**, Publish Area **Global**, Service Category **Common**, App Classification **Sports** (ili Health & Fitness ako Sports ne postoji), App Language **English (Default)**, App Name **RallyPal**, Version **1.0.0**.
+| # | Jezik u meniju | Folder | Uvod | Opis |
+|---|---|---|---|---|
+| 1 | English (Default) | `01-en-English` | 35 | 588 |
+| 2 | Serbian (srpski) | `02-sr-Serbian` | 35 | 567 |
+| 3 | Spanish (španski) | `03-es-Spanish` | 35 | 590 |
+| 4 | Italian (italijanski) | `04-it-Italian` | 37 | 588 |
+| 5 | German (nemački) | `05-de-German` | 31 | 562 |
+| 6 | French (francuski) | `06-fr-French` | 39 | 594 |
+| 7 | Portuguese (portugalski, brazilski tekst) | `07-pt-Portuguese` | 33 | 596 |
+| 8 | Dutch (holandski) | `08-nl-Dutch` | 34 | 586 |
+| 9 | Polish (poljski) | `09-pl-Polish` | 37 | 592 |
+| 10 | Czech (češki) | `10-cs-Czech` | 34 | 555 |
+| 11 | Ukrainian (ukrajinski) | `11-uk-Ukrainian` | 39 | 579 |
+| 12 | Russian (ruski) | `12-ru-Russian` | 36 | 568 |
+| 13 | Swedish (švedski) | `13-sv-Swedish` | 37 | 577 |
+| 14 | Norwegian (norveški) | `14-nb-Norwegian` | 36 | 577 |
+| 15 | Danish (danski) | `15-da-Danish` | 36 | 567 |
+| 16 | Finnish (finski) | `16-fi-Finnish` | 31 | 595 |
+| 17 | Japanese (japanski) | `17-ja-Japanese` | 16 | 310 |
 
-1. **App Introduction** (do 40 znakova, ovaj ima 35):
+### Engleski tekstovi (za proveru)
+
+App Introduction:
 ```
 Racket sports score, serve and side
 ```
-2. **App Details** (do 600 znakova, ovaj ima 572):
+App Details:
 ```
-Score keeper for tennis, padel, pickleball, table tennis, squash and badminton, plus padel Americano rounds. A key or a tap on your half of the screen scores the point; RallyPal follows the serve and the side, also in doubles, calls set, break and match points and vibrates on games and sets. Heart rate, summary after every match, history on the watch and phone, stats, optional Strava and Intervals.icu sync.
+Score keeper for tennis, padel, pickleball, table tennis, squash and badminton, plus padel Americano rounds. A key or a tap on your half of the screen scores the point; RallyPal follows the serve and the side, also in doubles, calls set, break and match points and vibrates on games, sets and change of ends. Rest countdown, aces and double faults, heart rate zones, records, history and stats on watch and phone, optional Strava and Intervals.icu sync. In 17 languages.
 
-3 free matches, then a one-time $2.99 unlock via KiezelPay: the watch shows a code, pay at kzl.io/code. No subscription.
+3 free matches, then a one-time $2.99 unlock via KiezelPay. No subscription.
 
 Created by Pavle (pavlemarinkovic.com)
 ```
-Ako konzola nudi druge jezike, tekstovi za srpski, španski, italijanski, nemački, francuski i portugalski su u `docs/store/text/02-sr-Serbian/` … `07-pt-Portuguese/` (svaki do 40 i do 600 znakova).
-3. **App Introduction Screenshot (round screen):** redom `docs/store/screenshots/round/1-match.png` … `6-history.png`.
-4. **App Introduction Screenshot (square screen):** redom `docs/store/screenshots/square/1-match.png` … `6-history.png`.
-5. **App Icon:** `docs/store/icon-240.png`.
-6. **Privacy Statement** (do 2000 znakova, ovaj ima 1592): ceo `docs/store/text/00-common/privacy.txt`, ili odavde:
+
+## C. Prompt za Remote Control
+
+Kopiraj ceo blok u sesiju koja radi na tvom Macu (Claude in Chrome):
+
 ```
-RallyPal Privacy Statement (November 2026)
+Popuni formu „App Release” za RallyPal 1.0.0 na Zepp konzoli (console.zepp.com) u mom Chrome-u, preko Claude in Chrome. Aplikacija je RallyPal, appId 1134434. Prva predaja je povučena (Withdraw), sada se ista verzija predaje ponovo sa novim paketom i tekstovima. Submit for Approval NE klikći, to radim ja.
 
-RallyPal keeps score for racket sports on Zepp OS watches. It is made by Pavle Marinković (pavlemarinkovic.com).
+1. Paket: ako ne postoji ~/Claude/rallypal-repo, pokreni
+   cd ~/Claude && git clone -b claude/rallypal-release https://github.com/marinkovicPavle/RallyPal rallypal-repo
+   a ako postoji: cd ~/Claude/rallypal-repo && git fetch origin && git checkout claude/rallypal-release && git pull
+   Uputstvo je ~/Claude/rallypal-repo/docs/SUBMIT.md, tekstovi u docs/store/text/, slike u docs/store/screenshots/. Pročitaj uputstvo celo pre početka.
 
-What the app uses
-- Heart rate: shown during a match and saved with it.
-- Watch model and device ID: for the free trial.
+2. ZAB:
+   cd ~/Claude/rallypal-repo && bash .dev/tools/build-copy.sh ~/Claude/rallypal-store
+   cd ~/Claude/rallypal-store && npm install
+   Proveri: u app.json "appId": 1134434 i "name": "1.0.0"; u shared/licence.js KPAY_APP_ID = '2025865549' i KPAY_TEST = false. Ako bilo šta ne stoji tako, stani i pitaj me.
+   cd ~/Claude/rallypal-store && zeus build && ls -t dist/*.zab | head -1
+   Uploaduj taj fajl (ime počinje sa 1134434-RallyPal-1.0.0-) umesto starog. Version No. na formi je 1.0.0; ako konzola traži veću verziju, stani i pitaj me.
 
-Your matches, with the names you type for players, are stored on your watch and backed up to the Zepp app on your phone. They are not sent to us.
+3. Popuni formu tačno po odeljku B iz SUBMIT.md:
+   - App Language: English (Default) plus 16 jezika iz tabele u odeljku B (Serbian, Spanish, Italian, German, French, Portuguese, Dutch, Polish, Czech, Ukrainian, Russian, Swedish, Norwegian, Danish, Finnish, Japanese). Kineske ne štikliraj. Portugalski tekst je brazilski: ako postoje i Portuguese (Brazil) i Portuguese (Portugal), stavi ga za Brazil i pitaj me za Portugal;
+   - za svaki jezik iz foldera tog jezika (01-en-English … 17-ja-Japanese): App Name iz 1-app-name.txt, App Introduction iz 2-app-introduction.txt, App Details iz 3-app-details.txt. Ako blok ima obavezno polje New Version Introduction, upiši isti tekst kao App Introduction;
+   - slike za svaki jezik: obriši stare i dodaj screenshots/<folder jezika>/round/1-match.png do 6-history.png, pa square/1-match.png do 6-history.png, tim redom;
+   - App Icon: docs/store/icon-240.png;
+   - Privacy Statement, tekst uz Others, SDK opis i Features Descriptions iz text/00-common/. U Call Permission štikliraj Heart Rate, Connect to the network, Run in background, Others i polje za podatke o korisniku ako postoji;
+   - payment status in app purchase, In-app payment mode Kiezepay, Publish Area Global, Service Category Common, App Classification Sports (ako ne postoji, Health & Fitness), SDK No, Full music playback No, Work Statement štiklirano.
 
-Free trial
-So that reinstalling does not reset the 3 free matches, your phone sends our trial service (on Cloudflare) a one-way hash of your watch ID and short hashes of the counted matches. These cannot be turned back into your watch ID or match times, and the service never gets your name or account. Watches without a device ID (older than Zepp OS 4.2) use a random ID made by your phone instead.
+4. Tekst lepi tačno kako je u fajlu (bez poslednjeg praznog reda). Posle svakog polja pročitaj vrednost iz polja i uporedi je sa fajlom.
 
-Purchase
-The full version is sold through KiezelPay (kiezelpay.com). Your phone sends KiezelPay a random account number and your watch model to check the purchase. You pay on KiezelPay's website under their privacy policy; RallyPal never sees payment details.
+5. Ako forma izgleda drugačije nego u uputstvu, polje odbije tekst, zeus build javi grešku ili nekog jezika nema u meniju, stani i pitaj me.
 
-Optional connections
-If you connect Strava or Intervals.icu, your matches (time, sport, score, statistics, heart rate and the names you typed) go directly from your phone to that service with the keys you entered. The keys stay on your phone and are never sent to us.
-
-No ads, no analytics, no tracking. We don't sell or share your data.
-
-Uninstalling RallyPal removes your matches from the watch and phone. Trial hashes stay on the trial service but cannot be linked to you.
-
-Contact: pavle019@live.com
+6. Na kraju ostavi tab sa popunjenom formom otvoren. Javi mi šta je popunjeno, koji jezici, koliko je slika po jeziku i šta je eventualno ostalo.
 ```
-7. **Call Permission:** štikliraj **Heart Rate**, **Connect to the network** (telefon šalje na trial servis, KiezelPay, Stravu i Intervals.icu), **Run in background** (puls dok je ekran ugašen) i **Others**. **None** i **Positioning** ne. Ako uz Others traži opis:
-```
-Device ID (free trial count, sent only as a one-way hash).
-```
-8. **Whether the installation package includes SDK:** **No**. Ako traži opis:
-```
-No third-party SDK is bundled. The purchase status is checked over KiezelPay's web API.
-```
-9. **Full music playback:** **No**.
-10. **Features Descriptions** (opis za recenzente, sa objašnjenjem naplate):
-```
-Score keeper for racket sports. On the start screen pick a setup (sport and rules), tap NEW MATCH and choose who serves first. In a match the upper half of the screen or the upper key gives the opponent a point, the lower half or the lower key gives you one; UNDO and MENU are in the middle. The match ends by the rules or from the menu, and a summary follows. History and settings are on the watch and on the app's settings page in the Zepp app.
 
-Payment: free download with 3 free matches (a match counts from 5 minutes). Then a one-time $2.99 unlock through KiezelPay: the watch shows a code, the user pays at kzl.io/code and the watch unlocks by itself. Strava and Intervals.icu sync are optional.
-```
-11. **Work Statement:** štiklirano.
-12. **Submit for Approval.** 6 predaja nedeljno (resetuje se u ponedeljak), pa pre klika proveri sva polja. Recenzija obično traje 1 do 5 radnih dana (tako piše u SaunaPal uputstvu).
+## D. Posle predaje
 
-Ako neko polje odbije tekst, pošalji mi screenshot.
-
-## C. Posle predaje
-
-- **Odbijeno:** pošalji mi razlog. Ispravim, ti `build-copy.sh`, `zeus build` i preko **Edit** ponovo predaš.
+- **Odbijeno:** pošalji mi razlog. Ispravka ide na granu `claude/rallypal-release`, pa `build-copy.sh`, `zeus build` i ponovo predaja.
 - **Odobreno:** u KiezelPay-u upiši link iz Zepp store-a u **Amazfit Appstore Url** proizvoda RallyPal.
-
-## Šta je još otvoreno
-
-- **Strava (ROAST stavka 4):** od 30. 6. 2026 Strava traži plaćenu pretplatu od vlasnika svake Strava API aplikacije, a kod nas svaki kupac pravi svoju. Za 1.0 ostaje kako jeste (mogućnost a); opis u store-u kaže samo "optional Strava sync". Zajednička RallyPal Strava aplikacija (mogućnost b) je posao za 1.1 ako je odabereš.
-- **Brojač probe** koristi isti Cloudflare servis kao SaunaPal (`saunapal-trial`), sa posebnim RallyPal ključevima, pa se brojevi dve aplikacije ne mešaju. Besplatni Cloudflare KV dozvoljava 1.000 upisa dnevno za obe aplikacije zajedno; ako se to ikad potroši, proba radi po brojaču na satu.
+- Strava: svaki kupac pravi svoju Strava API aplikaciju (od juna 2026 Strava za to traži plaćenu pretplatu; napomena je u uputstvu na telefonu). Odluka 24 A.

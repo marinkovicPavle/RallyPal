@@ -32,7 +32,10 @@ SHOTS = [
     ('6-history', 'History')
 ]
 LANGS = [('en', '01-en-English'), ('sr', '02-sr-Serbian'), ('es', '03-es-Spanish'), ('it', '04-it-Italian'),
-         ('de', '05-de-German'), ('fr', '06-fr-French'), ('pt', '07-pt-Portuguese')]
+         ('de', '05-de-German'), ('fr', '06-fr-French'), ('pt', '07-pt-Portuguese'), ('nl', '08-nl-Dutch'),
+         ('pl', '09-pl-Polish'), ('cs', '10-cs-Czech'), ('uk', '11-uk-Ukrainian'), ('ru', '12-ru-Russian'),
+         ('sv', '13-sv-Swedish'), ('nb', '14-nb-Norwegian'), ('da', '15-da-Danish'), ('fi', '16-fi-Finnish'),
+         ('ja', '17-ja-Japanese')]
 
 
 def cut(dev, shot):
