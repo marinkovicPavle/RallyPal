@@ -22,11 +22,12 @@ export const IDLE_END_S = 600
 export const END_GRACE_S = 60
 export const IDLE_HR_S = 1800
 
-// setup: { id, sport, rules, doubles }, choice: { first: team serving first, mine: who of team 0 serves first }
+// setup: { id, sport, rules, doubles }, choice: { first: team serving first, mine: who of team 0 serves first,
+// from: the score the match is picked up at (ROAST item 18), see startFrom }
 export function newMatch(setup, choice, now) {
   const sport = isSport(setup.sport) ? setup.sport : 'tennis'
   const doubles = sanitizeDoubles(sport, setup.doubles)
-  return {
+  const m = {
     v: 1,
     id: 'm' + now,
     start: now,
@@ -38,6 +39,72 @@ export function newMatch(setup, choice, now) {
     mine: doubles && choice && choice.mine ? 1 : 0,
     ev: []
   }
+  const from = choice && cleanFrom(m, choice.from)
+  if (from) m.from = from
+  return m
+}
+
+// What can be picked up at, by the rules' model: sets won and games of the set (tennis, padel), games won and
+// points of the game (the other sports), points of the round (a round to a total); null when it is 0-0
+export function fromRows(sport, rules) {
+  const P = paramsOf(sport, rules)
+  if (P.model === 'tennis') return [['sets', P.sets - 1], ['games', P.games]]
+  if (P.model === 'total') return [['points', P.total - 1]]
+  return [['games', P.win - 1], ['points', P.to - 1]]
+}
+
+// A score to pick up at, checked against the rules: every value in its range, no finished set or game.
+// Returns { sets?, games?, points? } with [you, opponent] pairs, or null for a start at 0-0.
+export function cleanFrom(m, from) {
+  if (!from || typeof from !== 'object') return null
+  const P = paramsOf(m.sport, m.rules)
+  const out = {}
+  let any = false
+  fromRows(m.sport, m.rules).forEach(([k, max]) => {
+    const v = Array.isArray(from[k]) ? from[k] : [0, 0]
+    const pair = [0, 1].map((i) => Math.max(0, Math.min(max, Math.floor(Number(v[i]) || 0))))
+    out[k] = pair
+    if (pair[0] || pair[1]) any = true
+  })
+  if (!any) return null
+  if (P.model === 'tennis') {
+    const [a, b] = out.games
+    // a set that would already be over is not a starting point
+    if ((a >= P.games || b >= P.games) && Math.abs(a - b) >= 2) return null
+    if (!P.tiebreak && a === P.games && b === P.games) return null
+  }
+  return out
+}
+
+// Applied once before the events: the sets or games before the start count as won (their scores are
+// unknown, so they don't show in the score), the current set or game goes on from its score, and the team
+// that serves first serves the next rally
+function startFrom(st, f, m) {
+  const P = st.P
+  const pre = (pair) => pair.forEach((c, team) => {
+    for (let i = 0; i < c; i++) st.sets.push({ s: team === 0 ? [1, 0] : [0, 1], pre: true })
+  })
+  if (st.model === 'tennis') {
+    pre(f.sets)
+    st.won = f.sets.slice()
+    if (P.superTb && st.won[0] === P.sets - 1 && st.won[1] === P.sets - 1) st.tb = 'super'
+    else {
+      st.g = f.games.slice()
+      // a change of ends goes by the games of this set (the earlier sets' games are not known)
+      st.gi0 = st.g[0] + st.g[1]
+      if (P.tiebreak && st.g[0] === P.games && st.g[1] === P.games) st.tb = 'tb'
+    }
+  } else if (st.model === 'total') {
+    st.p = f.points.slice()
+  } else {
+    pre(f.games)
+    st.won = f.games.slice()
+    st.gi = st.won[0] + st.won[1]
+    st.p = f.points.slice()
+    if (st.model === 'sideout') st.num = 1
+  }
+  applyServer(st, m.first, m.mine)
+  st.last = null
 }
 
 function secOf(m, now) {
@@ -202,6 +269,7 @@ function init(m) {
     }
   }
   if (st.model === 'sideout') startSideoutGame(st)
+  if (m.from) startFrom(st, m.from, m)
   return st
 }
 
@@ -308,7 +376,7 @@ function restAfter(st, before) {
 function changeEnds(st, before) {
   if (st.done || st.model === 'squash' || st.model === 'total') return
   if (st.model === 'tennis') {
-    if (st.last === 'game' || st.last === 'set') st.ends = st.gi % 2 === 1
+    if (st.last === 'game' || st.last === 'set') st.ends = (st.gi + (st.gi0 || 0)) % 2 === 1
     else if (st.tb) st.ends = (st.p[0] + st.p[1]) % 6 === 0
     return
   }
@@ -655,7 +723,7 @@ function setText(set) {
 // Score from team 0's side, e.g. "6-4 6-7(5) [10-8]", "11-7 9-11 11-5", "13-11"; a match that is
 // still going or was ended by hand also shows the unfinished set or game.
 export function scoreText(v) {
-  const parts = v.sets.map(setText)
+  const parts = v.sets.filter((x) => !x.pre).map(setText)
   if (!v.done || v.ended) {
     if (v.tb === 'super' && (v.points[0] || v.points[1])) parts.push(`[${v.points[0]}-${v.points[1]}]`)
     else if (v.games && (v.games[0] || v.games[1])) parts.push(`${v.games[0]}-${v.games[1]}`)

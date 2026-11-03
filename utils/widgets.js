@@ -194,6 +194,13 @@ export function question(opts, nav) {
     const h = R ? 64 : 72
     opts.options.forEach((o, i) => draw(o, i, around(MX, ys[i], R ? 320 : 330, h), 28, h))
   }
+  // a small extra pill under the options ("From a score")
+  if (opts.extra) {
+    const ey = n === 2 ? (R ? 424 : 404) : R ? 420 : 392
+    // as wide as its words, up to what the round edge leaves (the text gets smaller after that)
+    const ew = Math.min(R ? chord(ey - 21, 42, 24) : 300, Math.ceil(textWidth(opts.extra.label, px(18)) / (W / (R ? 480 : 390))) + 44)
+    pillButton(around(MX, ey, ew, 42), opts.extra.label, 18, opts.extra.onTap, C.lgray)
+  }
   if (cursor) {
     const move = (d) => () => {
       const sel = Math.max(0, Math.min(n - 1, loc.sel + d))

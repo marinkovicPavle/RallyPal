@@ -855,6 +855,33 @@ async function trialWalk(device, lang) {
   return w
 }
 
+// A match picked up at a score (ROAST 18): START FROM with − and +, back to "Who serves first?", the match
+async function fromWalk(device, lang) {
+  S.setLang(lang)
+  const w = new Watch(device, T0, lang)
+  seed(w, false)
+  w.files['meta.json'] = JSON.stringify({ licensed: true, restoredAt: T0 - DAY, bgAsked: T0 - DAY })
+  w.bgPermission = true
+  w.open('index')
+  await w.tap(tt('home.newMatch'))
+  await w.tap(tt('from.button'))
+  if (!w.shows(tt('from.title'))) throw new Error(w.where() + ' no START FROM')
+  const plus = () => w.visible().filter((x) => x.type === 'BUTTON' && x.props.text === '+').sort((a, b) => a.props.y - b.props.y || a.props.x - b.props.x)
+  // sets: you 1; games: you 3, opponent 2
+  await w.press(plus()[0], 'sets +')
+  for (let i = 0; i < 3; i++) await w.press(plus()[2], 'games +')
+  for (let i = 0; i < 2; i++) await w.press(plus()[3], 'games +')
+  w.shot('Start from a score')
+  await w.tap(tt('ok'))
+  w.shot('Who serves first?, from a score')
+  if (!w.shows(tt('from.line', { score: '1–0 · 3–2' }))) throw new Error(w.where() + ' the score above the question')
+  await w.tap('Marko')
+  const v = S.view(w.match())
+  if (v.won[0] !== 1 || v.games[0] !== 3 || v.games[1] !== 2 || v.server !== 1) throw new Error(w.where() + ' the match did not start from 1-0 3-2')
+  w.shot('Match from a score')
+  return w
+}
+
 async function main() {
   fs.mkdirSync(OUT, { recursive: true })
   await loadLib()
@@ -869,6 +896,8 @@ async function main() {
         shots.push(...w.shots)
         const tw = await trialWalk(d, lang)
         shots.push(...tw.shots)
+        const fw = await fromWalk(d, lang)
+        shots.push(...fw.shots)
       } catch (e) {
         failed++
         console.error(`${d.name} ${lang}: FAILED`, e.stack || e)

@@ -8,7 +8,7 @@
 
 import { BasePage } from '@zeppos/zml/base-page'
 import {
-  ROUND, KEYS, C, W, K, MX, px, sy, around, at, text, rect, outline, img, cover, marker, markerSize, limeButton, iconButton, textWidth,
+  ROUND, KEYS, C, W, K, MX, px, sy, around, at, text, rect, outline, img, cover, marker, markerSize, limeButton, pillButton, iconButton, textWidth,
   fitSize, chord, CARET
 } from '../utils/ui'
 import { screen, heading, question, toast } from '../utils/widgets'
@@ -17,7 +17,7 @@ import { settingsValues, loadHistory, loadMeta, saveMeta, loadActive, saveActive
 import { askBgPermission, startMonitor } from '../utils/bg'
 import { syncWithPhone } from '../utils/sync'
 import { trial } from '../utils/licence'
-import { newMatch } from '../shared/match'
+import { newMatch, fromRows, cleanFrom } from '../shared/match'
 import { findSetup } from '../shared/schema'
 import { setupTitle, fittedTitle, setupExtra, matchNames, teamName, partnerName } from '../shared/setups'
 import { lastLine } from '../shared/card'
@@ -26,7 +26,7 @@ import { t } from '../shared/i18n'
 
 Page(
   BasePage({
-    state: { nav: null, setupId: null, starting: false, params: {} },
+    state: { nav: null, setupId: null, starting: false, params: {}, from: null },
 
     onInit(params) {
       this.state.params = parseParams(params)
@@ -195,9 +195,11 @@ Page(
         if (setup.doubles) nav.push((n) => this.whoOfUs(n, first))
         else this.begin({ first, mine: 0 })
       }
+      const from = this.from()
       return question(
         {
-          top: this.topLine(setup),
+          top: from ? t('from.line', { score: this.fromText(from) }) : this.topLine(setup),
+          extra: { label: from ? t('from.change') : t('from.button'), onTap: () => nav.push((n) => this.fromScore(n)) },
           question: t('serve.first'),
           options: [
             { label: teamName(1, names, setup.doubles), onPick: () => pick(1) },
@@ -227,6 +229,63 @@ Page(
       )
     },
 
+    // the score the next match is picked up at (ROAST item 18), checked against the chosen setup
+    from() {
+      const st = this.state
+      if (!st.from) return null
+      return cleanFrom(newMatch(this.setup(), { first: 0 }, 0), st.from)
+    },
+
+    // "1–0 · 3–2": sets and games, games and points, or the points of a round
+    fromText(f) {
+      return ['sets', 'games', 'points'].filter((k) => f[k]).map((k) => `${f[k][0]}–${f[k][1]}`).join(' · ')
+    },
+
+    // START FROM: a row for each part of the score with − and + for you and the opponent, and OK
+    fromScore(nav) {
+      const st = this.state
+      const R = ROUND
+      const setup = this.setup()
+      const m = newMatch(setup, { first: 0 }, 0)
+      const rows = fromRows(setup.sport, setup.rules)
+      const draft = nav.local()
+      if (!draft.v) {
+        draft.v = {}
+        rows.forEach(([k]) => (draft.v[k] = (st.from && st.from[k] ? st.from[k] : [0, 0]).slice()))
+      }
+      const names = matchNames(setup, this.values())
+      screen()
+      heading(t('from.title'), C.white, R ? 58 : 30, 26)
+      const cx = R ? [150, 330] : [105, 285]
+      let y = R ? (rows.length > 1 ? 112 : 160) : rows.length > 1 ? 74 : 130
+      rows.forEach(([k, max]) => {
+        at(MX, y, 300, t('from.' + k), 18, C.gray)
+        ;[0, 1].forEach((team) => {
+          at(cx[team], y + 28, 170, teamName(team, names, setup.doubles), 16, team === 0 ? C.lime : C.white, 'mm', { min: 12 })
+          const cy = y + 66
+          const step = (d) => () => {
+            const next = JSON.parse(JSON.stringify(draft.v))
+            next[k][team] = Math.max(0, Math.min(max, next[k][team] + d))
+            // a set or game that would already be over doesn't count as a start
+            const zero = Object.keys(next).every((x) => !next[x][0] && !next[x][1])
+            if (!zero && !cleanFrom(m, next)) return
+            draft.v = next
+            nav.redraw()
+          }
+          pillButton(around(cx[team] - 56, cy, 48, 46), '−', 28, step(-1))
+          at(cx[team], cy, 56, String(draft.v[k][team]), 30, C.white)
+          pillButton(around(cx[team] + 56, cy, 48, 46), '+', 28, step(1))
+        })
+        y += R ? 124 : 118
+      })
+      const ok = () => {
+        st.from = cleanFrom(m, draft.v)
+        nav.back()
+      }
+      limeButton(around(MX, R ? 404 : 392, 170, 54), t('ok'), 24, ok)
+      return { keys: { primary: ok }, hints: { primary: [C.lime] } }
+    },
+
     begin(choice) {
       const st = this.state
       if (st.starting) return
@@ -235,7 +294,8 @@ Page(
       const v = this.values()
       const setup = this.setup()
       const now = Date.now()
-      const m = newMatch(setup, choice, now)
+      const m = newMatch(setup, { ...choice, from: this.from() }, now)
+      st.from = null
       m.title = setupTitle(setup)
       m.names = matchNames(setup, v)
       saveActive(m)

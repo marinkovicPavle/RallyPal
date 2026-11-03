@@ -68,6 +68,7 @@ export function makeRecord(m, end) {
     first: m.first,
     mine: m.mine,
     ev: m.ev.slice(),
+    from: m.from || undefined,
     setup: m.setup,
     title: m.title || '',
     names: m.names || {},
@@ -96,6 +97,7 @@ export function matchOf(rec) {
     first: rec.first,
     mine: rec.mine,
     ev: rec.ev.slice(),
+    from: rec.from || undefined,
     title: rec.title,
     names: rec.names,
     hr: (rec.curve || []).slice()

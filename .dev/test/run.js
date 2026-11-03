@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import {
   SPORTS, OPTIONS, DOUBLES, defaultRules, sanitizeRules, sanitizeDoubles, isOfficial, paramsOf, modelOf
 } from '../../shared/rules'
-import { newMatch, addPoint, setServer, endMatch, undo, view, scoreText, duration, flow, pointPreview, flowMarks, idle } from '../../shared/match'
+import { newMatch, addPoint, setServer, endMatch, undo, view, scoreText, duration, flow, pointPreview, flowMarks, idle, cleanFrom, fromRows } from '../../shared/match'
 import { LANGS, langOfZepp, setLang, t } from '../../shared/i18n'
 import { TEXT } from '../../setting/text'
 import { DEFAULT_SETUPS, MAX_SETUPS, defaults, sanitize, sanitizeSetups, findSetup } from '../../shared/schema'
@@ -1504,6 +1504,48 @@ test('change ends: after each game, and halfway through the last game (ROAST 14)
   const am = mk('padel', { format: 'total', total: 16 })
   play(am, '0000')
   assert.equal(view(am).changeEnds, false, 'Americano: no change')
+})
+
+test('from a score: a match picked up at sets, games and points (ROAST 18)', () => {
+  const at = (sport, rules, o, from) => newMatch({ id: 'x', sport, rules, doubles: o.doubles }, { first: o.first || 0, mine: o.mine || 0, from }, T0)
+  assert.deepEqual(fromRows('tennis'), [['sets', 1], ['games', 6]])
+  assert.deepEqual(fromRows('tabletennis'), [['games', 2], ['points', 10]])
+  assert.deepEqual(fromRows('padel', { format: 'total', total: 24 }), [['points', 23]])
+  // tennis: a set up, 3-2, the opponents serve the next game
+  const m = at('tennis', undefined, { first: 1 }, { sets: [1, 0], games: [3, 2] })
+  let v = view(m)
+  assert.deepEqual([v.won, v.games, v.server], [[1, 0], [3, 2], 1])
+  assert.equal(scoreText(v), '3-2', 'the set before has no known games')
+  play(m, '1111')
+  assert.equal(view(m).changeEnds, false, '3-3: six games in this set, no change')
+  play(m, '0000')
+  assert.equal(view(m).changeEnds, true, '4-3: seven games, change of ends')
+  play(m, holds(2, 1).replace(/1/g, '0'))
+  v = view(m)
+  assert.equal(v.done, true)
+  assert.equal(v.winner, 0, 'two sets: the one before and 6-3')
+  assert.equal(scoreText(v), '6-3')
+  const rec = makeRecord(m, T0 + 3600000)
+  assert.deepEqual(rec.from, { sets: [1, 0], games: [3, 2] })
+  assert.equal(view(matchOf(rec)).winner, 0)
+  assert.ok(flowMarks(rec).wins.length > 0)
+  // a set already over or out of range is not a start; 0-0 is a normal start
+  assert.equal(cleanFrom(m, { sets: [0, 0], games: [6, 2] }), null)
+  assert.equal(cleanFrom(m, { sets: [0, 0], games: [0, 0] }), null)
+  assert.deepEqual(cleanFrom(m, { sets: [5, 0], games: [9, 5] }), { sets: [1, 0], games: [6, 5] }, 'kept in range')
+  // a super tie-break at one set all
+  const s = at('tennis', { finalSet: 'super' }, {}, { sets: [1, 1] })
+  assert.equal(view(s).tb, 'super')
+  // table tennis: games 1-2, 5-3 in the fourth, the opponents serving now
+  const tt = at('tabletennis', undefined, { first: 1 }, { games: [1, 2], points: [5, 3] })
+  v = view(tt)
+  assert.deepEqual([v.won, v.points, v.server], [[1, 2], [5, 3], 1])
+  play(tt, rep('1', 8))
+  assert.equal(view(tt).winner, 1)
+  // pickleball doubles, side-out: 4-2, your team serving, first server
+  const pb = at('pickleball', undefined, { doubles: true, first: 0, mine: 1 }, { points: [4, 2] })
+  v = view(pb)
+  assert.deepEqual([v.server, v.player, v.call], [0, 1, '4-2-1'])
 })
 
 test('rest: the rest each sport allows before the next rally (ROAST 16)', () => {

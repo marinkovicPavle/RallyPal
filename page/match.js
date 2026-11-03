@@ -335,7 +335,8 @@ Page({
   // (or for sports without sets the games won).
   counts(team, y, v, minLeft) {
     const tennis = v.model === 'tennis'
-    let items = v.sets.map((s) => ({ s: String(s.s[team]), big: false }))
+    // sets before a match picked up at a score have no known games: not shown
+    let items = v.sets.filter((s) => !s.pre).map((s) => ({ s: String(s.s[team]), big: false }))
     if (tennis && v.tb !== 'super') items.push({ s: String(v.games[team]), big: true })
     if (v.model === 'total' || !items.length) return
     const right = px(D.box[0] - D.box[1] / 2 - 10)
