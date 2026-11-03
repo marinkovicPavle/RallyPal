@@ -7,7 +7,8 @@ export const FILES = {
   settings: 'settings.json', // { values, stamps }
   active: 'match.json', // the match being played (saved after every point)
   hr: 'hr.json', // { id, hr: [[sec, bpm]] } its heart rate, saved less often (the file grows)
-  history: 'history.json', // finished matches, newest first
+  history: 'history.json', // finished matches without events and curves, newest first; m_<id>.json each
+  // match's own events and curve (shared/historystore.js)
   outbox: 'outbox.json', // [{ op: 'upsert' | 'delete', id }] waiting for the phone
   meta: 'meta.json', // { lastSetup, bgAsked, restoredAt, restorePage, licensed, trialIds, payCode }
   bg: 'bg.json', // heart rate the background service recorded while the app was closed

@@ -13,6 +13,7 @@ import { addHr, mergeHr, hrStats, makeRecord, matchOf, wonCount, restoreFrom, RE
 import { trialOf, canEdit, counts, playable, trialLine, FREE_MATCHES, MIN_MATCH_SEC } from '../../shared/licence'
 import { devHash, matchHash } from '../../shared/trialhash'
 import { hrMaxOf, zoneOf, zonesFromCurve, zonePercents, records, newRecords } from '../../shared/insights'
+import { createHistory, detailName, INDEX } from '../../shared/historystore'
 import { createLicence } from '../../app-side/licence'
 import { cardView, lastLine } from '../../shared/card'
 import { clock, hm, prettyScore, dayLabel, percent, resultOf } from '../../shared/format'
@@ -1687,6 +1688,77 @@ test('strava: a sign-in made offline is kept for the next try (ROAST 9)', () => 
     assert.equal(store.stravaCode, 'c0de')
     assert.equal(JSON.parse(store.status).strava.key, 'err.offline')
   })
+})
+
+// ---------------------------------------------------------------- the history in files (ROAST item 11)
+
+function memoryFiles() {
+  const files = {}
+  let writes = 0
+  return {
+    files,
+    writes: () => writes,
+    // as the watch's readJson: a file that doesn't parse reads as missing
+    read: (name) => {
+      try {
+        return name in files ? JSON.parse(files[name]) : undefined
+      } catch (e) {
+        return undefined
+      }
+    },
+    write: (name, value) => {
+      writes++
+      files[name] = JSON.stringify(value)
+      return true
+    },
+    remove: (name) => delete files[name]
+  }
+}
+
+test('history files: a light index and one file per match; a match opened whole', () => {
+  const io = memoryFiles()
+  const h = createHistory(io, { kept: 3, curvesKept: 1, curvesUnsent: 2 })
+  const recs = [1, 2, 3].map((i) => ({ ...finished('tennis', rep('0', 48)), id: 'm' + i, start: T0 + i * 1000, curve: [[0, 120], [5, 130]] }))
+  recs.forEach((r) => h.put(r))
+  const index = JSON.parse(io.files[INDEX])
+  assert.equal(index.length, 3)
+  assert.ok(index.every((x) => !x.ev && !x.curve), 'no events or curves in the index')
+  assert.equal(index[0].id, 'm3', 'newest first')
+  const whole = h.get('m2')
+  assert.equal(whole.ev.length, recs[1].ev.length)
+  assert.equal(whole.score, recs[1].score)
+  assert.equal(whole.hc, undefined)
+  // the curve stays only on the newest match (the others are with the phone)
+  assert.ok(h.get('m3').curve)
+  assert.equal(h.get('m1').curve, undefined)
+  // the oldest goes when a fourth comes, and so does its file
+  h.put({ ...recs[0], id: 'm4', start: T0 + 9000 })
+  assert.equal(h.list().length, 3)
+  assert.equal(io.files[detailName('m1')], undefined)
+  assert.ok(h.remove('m4'))
+  assert.equal(io.files[detailName('m4')], undefined)
+  assert.equal(h.get('m4'), null)
+})
+
+test('history files: an index broken by a switch-off is read from its copy; an old one-file history is split', () => {
+  const io = memoryFiles()
+  const h = createHistory(io, {})
+  const rec = finished('squash', rep('0', 33))
+  h.put(rec)
+  io.files[INDEX] = '[{"id":"m'
+  assert.equal(h.list().length, 1, 'read from history.json.bak')
+  assert.equal(h.get(rec.id).ev.length, rec.ev.length)
+  // the history as 1.0 wrote it: whole records in one file
+  const old = memoryFiles()
+  old.files[INDEX] = JSON.stringify([rec])
+  const h2 = createHistory(old, {})
+  assert.equal(h2.list()[0].ev, undefined)
+  assert.ok(old.files[detailName(rec.id)])
+  assert.equal(h2.get(rec.id).ev.length, rec.ev.length)
+  // restore adds only what is missing; names change in the index
+  assert.equal(h2.addMissing([rec, { ...rec, id: 'x', start: T0 - 5000 }]), 1)
+  assert.ok(h2.update((x) => (x.id === 'x' ? ((x.names = { opponent: 'Ana' }), true) : false)))
+  assert.equal(h2.get('x').names.opponent, 'Ana')
 })
 
 // ---------------------------------------------------------------- v2: heart rate zones and records

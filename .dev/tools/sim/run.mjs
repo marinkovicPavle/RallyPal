@@ -664,7 +664,7 @@ async function walk(device, lang) {
   await w.tap(tt('end.ok'))
   // a retirement: the opponents won
   await w.tap(S.teamName(1, { opponent: '' }, true))
-  if (S.view(JSON.parse(w.files['history.json'])[0]).winner !== 1) throw new Error(w.where() + ' the winner of a match ended by hand')
+  if (JSON.parse(w.files['history.json'])[0].winner !== 1) throw new Error(w.where() + ' the winner of a match ended by hand')
   w.shot('Summary, opponents won by retirement')
   await w.advance(2)
   await w.tap(tt('sum.done'))

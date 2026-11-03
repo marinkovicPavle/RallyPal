@@ -3,6 +3,7 @@
 
 import { FILES, readJson, writeJson, removeFile } from './store'
 import { normalize, setValue } from '../shared/settings'
+import { createHistory } from '../shared/historystore'
 
 export function loadSettings() {
   return normalize(readJson(FILES.settings, null))
@@ -34,6 +35,8 @@ export function saveMeta(patch) {
 }
 
 // ---- history ----------------------------------------------------------------------------------------
+// A light index and one file per match (shared/historystore.js, ROAST item 11): the lists read only the
+// index; getMatch reads a match's own file too.
 
 export const HISTORY_KEPT = 200
 // the heart rate curve is for the phone's chart and Strava; the watch keeps it on its newest matches, and
@@ -41,98 +44,84 @@ export const HISTORY_KEPT = 200
 const CURVES_KEPT = 20
 const CURVES_UNSENT = 60
 
+const hist = createHistory(
+  { read: (name) => readJson(name, undefined), write: (name, value) => writeJson(name, value), remove: (name) => removeFile(name) },
+  {
+    kept: HISTORY_KEPT,
+    curvesKept: CURVES_KEPT,
+    curvesUnsent: CURVES_UNSENT,
+    unsent: () => {
+      const out = {}
+      loadOutbox().forEach((x) => {
+        if (x && x.op === 'upsert') out[x.id] = true
+      })
+      return out
+    }
+  }
+)
+
+// the matches without their events and curves, newest first
 export function loadHistory() {
-  const h = readJson(FILES.history, [])
-  return Array.isArray(h) ? h : []
+  return hist.list()
 }
 
-function saveHistory(list) {
-  list.sort((a, b) => b.start - a.start)
-  const out = list.slice(0, HISTORY_KEPT)
-  const unsent = {}
-  loadOutbox().forEach((x) => {
-    if (x && x.op === 'upsert') unsent[x.id] = true
-  })
-  out.forEach((x, i) => {
-    if (x.curve && i >= CURVES_KEPT && (!unsent[x.id] || i >= CURVES_UNSENT)) delete x.curve
-  })
-  writeJson(FILES.history, out)
-}
-
+// a whole match (events and curve too), or null
 export function getMatch(id) {
-  const h = loadHistory()
-  for (let i = 0; i < h.length; i++) if (h[i].id === id) return h[i]
-  return null
+  return hist.get(id)
 }
 
 // Adds or replaces a finished match and queues it for the phone
 export function putMatch(rec) {
-  saveHistory(loadHistory().filter((x) => x.id !== rec.id).concat([rec]))
+  hist.put(rec)
   queue({ op: 'upsert', id: rec.id })
   return rec
 }
 
 // queueIt false: the phone never saw it (undo of the last point right after the match)
 export function deleteMatch(id, queueIt) {
-  saveHistory(loadHistory().filter((x) => x.id !== id))
+  hist.remove(id)
   dequeue(id)
   if (queueIt !== false) queue({ op: 'delete', id })
 }
 
 // Restore from the phone: only adds matches the watch does not have
 export function mergeRestored(list) {
-  const h = loadHistory()
-  const have = {}
-  h.forEach((x) => (have[x.id] = true))
-  let added = 0
-  ;(list || []).forEach((x) => {
-    if (x && x.id && !have[x.id]) {
-      h.push(x)
-      added++
-    }
-  })
-  if (added) saveHistory(h)
-  return added
+  return hist.addMissing(list)
 }
 
 // Changes made to the history on the phone page (names, deletes). They come with every sync, so applying
 // one again changes nothing; returns whether the history changed.
 export function applyPhoneEdits(edits) {
   if (!Array.isArray(edits) || !edits.length) return false
-  const h = loadHistory()
   let changed = false
-  const keep = h.filter((x) => {
-    const gone = edits.some((e) => e && e.op === 'delete' && e.id === x.id)
-    if (gone) changed = true
-    return !gone
+  edits.forEach((e) => {
+    if (e && e.op === 'delete' && hist.remove(e.id)) {
+      // the phone already has this change: nothing goes back to it
+      dequeue(e.id)
+      changed = true
+    }
   })
-  keep.forEach((x) => {
+  const named = hist.update((x) => {
+    let c = false
     edits.forEach((e) => {
       if (!e || e.op !== 'names' || e.id !== x.id || !e.names) return
       const names = { ...(x.names || {}), ...e.names }
       if (JSON.stringify(names) !== JSON.stringify(x.names || {})) {
         x.names = names
-        changed = true
+        c = true
       }
     })
+    return c
   })
-  if (!changed) return false
-  // the phone already has these changes: nothing goes back to it
-  edits.forEach((e) => e && e.op === 'delete' && dequeue(e.id))
-  saveHistory(keep)
-  return true
+  return changed || named
 }
 
 export function markSynced(id, sync) {
-  const h = loadHistory()
-  let changed = false
-  h.forEach((x) => {
-    if (x.id === id) {
-      x.sync = { ...(x.sync || {}), ...sync }
-      changed = true
-    }
+  hist.update((x) => {
+    if (x.id !== id) return false
+    x.sync = { ...(x.sync || {}), ...sync }
+    return true
   })
-  if (changed) writeJson(FILES.history, h)
 }
 
 // ---- outbox -----------------------------------------------------------------------------------------
