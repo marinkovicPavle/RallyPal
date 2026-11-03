@@ -11,16 +11,16 @@ import {
   ROUND, KEYS, C, W, K, MX, px, sy, around, at, text, rect, outline, img, cover, marker, markerSize, limeButton, pillButton, iconButton, textWidth,
   fitSize, chord, CARET
 } from '../utils/ui'
-import { screen, heading, question, toast } from '../utils/widgets'
+import { screen, heading, question, toast, choice } from '../utils/widgets'
 import { createNav, goPage, quit, parseParams } from '../utils/nav'
-import { settingsValues, loadHistory, loadMeta, saveMeta, loadActive, saveActive } from '../utils/data'
+import { settingsValues, saveSetting, loadHistory, loadMeta, saveMeta, loadActive, saveActive } from '../utils/data'
 import { askBgPermission, startMonitor } from '../utils/bg'
 import { syncWithPhone } from '../utils/sync'
 import { trial } from '../utils/licence'
 import { newMatch, fromRows, cleanFrom } from '../shared/match'
 import { findSetup } from '../shared/schema'
-import { modelOf } from '../shared/rules'
-import { setupTitle, fittedTitle, setupExtra, matchNames, teamName, partnerName } from '../shared/setups'
+import { modelOf, SPORTS, DOUBLES } from '../shared/rules'
+import { setupTitle, fittedTitle, setupExtra, matchNames, teamName, partnerName, sportName } from '../shared/setups'
 import { lastLine } from '../shared/card'
 import { playable, trialLine } from '../shared/licence'
 import { t } from '../shared/i18n'
@@ -46,6 +46,9 @@ Page(
       if ((st.params.go || st.params.rematch) && trial().locked) return goPage('unlock')
       nav.show((n) => this.home(n))
       if (st.params.go || st.params.rematch) nav.push((n) => this.whoServes(n))
+      // setup in 3 steps (ROAST-v2 item 9): a new install, or from Settings; an update with matches skips it
+      if (st.params.setup || (!meta.onboarded && !loadHistory().length)) nav.push((n) => this.obSport(n))
+      else if (!meta.onboarded) saveMeta({ onboarded: Date.now() })
       syncWithPhone(this, { restore: true }).then((res) => {
         // the answer can come after this page was left; it must not draw over the next one
         if (!res.ok || st.starting || st.gone) return
@@ -224,6 +227,85 @@ Page(
             { label: partnerName(names), onPick: () => this.begin({ first, mine: 1 }) },
             { label: teamName(0, names), onPick: () => this.begin({ first, mine: 0 }) }
           ],
+          back: () => nav.back()
+        },
+        nav
+      )
+    },
+
+    // ---- setup in 3 steps: the sport, singles or doubles, points by tap or keys only; each can be skipped
+
+    obDone(nav) {
+      saveMeta({ onboarded: Date.now() })
+      nav.root()
+    },
+
+    obSport(nav) {
+      const st = this.state
+      const list = settingsValues().setups
+      const options = SPORTS.map((sp) => [sp, sportName(sp)]).concat([['skip', t('ob.skip')]])
+      return choice({
+        title: `${t('ob.step', { n: 1 })} · ${t('ob.sport')}`.toUpperCase(),
+        current: this.setup().sport,
+        options,
+        onPick: (sp) => {
+          if (sp !== 'skip') {
+            const s = list.filter((x) => x.sport === sp)[0]
+            if (s) {
+              st.setupId = s.id
+              saveMeta({ lastSetup: s.id })
+            }
+          }
+          if (DOUBLES[this.setup().sport].length > 1) nav.push((n) => this.obPlayers(n))
+          else this.obAfterPlayers(nav)
+        }
+      })
+    },
+
+    obPlayers(nav) {
+      const st = this.state
+      const setup = this.setup()
+      const set = (doubles) => {
+        const list = settingsValues().setups.map((x) => (x.id === st.setupId ? { ...x, doubles } : x))
+        saveSetting('setups', list)
+        this.obAfterPlayers(nav)
+      }
+      return question(
+        {
+          top: `${t('ob.step', { n: 2 })} · ${sportName(setup.sport)}`,
+          question: t('ob.players'),
+          options: [
+            { label: t('setup.singles'), chosen: !setup.doubles, onPick: () => set(false) },
+            { label: t('setup.doubles'), chosen: !!setup.doubles, onPick: () => set(true) }
+          ],
+          extra: { label: t('ob.skip'), onTap: () => this.obAfterPlayers(nav) },
+          back: () => nav.back()
+        },
+        nav
+      )
+    },
+
+    // a watch with one key scores by tap: no third step
+    obAfterPlayers(nav) {
+      if (KEYS >= 2) nav.push((n) => this.obPoints(n))
+      else this.obDone(nav)
+    },
+
+    obPoints(nav) {
+      const tap = settingsValues().tapPoints !== false
+      const set = (on) => {
+        saveSetting('tapPoints', on)
+        this.obDone(nav)
+      }
+      return question(
+        {
+          top: t('ob.step', { n: 3 }),
+          question: t('ob.points'),
+          options: [
+            { label: t('ob.tap'), chosen: tap, onPick: () => set(true) },
+            { label: t('opt.tapPoints.off'), chosen: !tap, onPick: () => set(false) }
+          ],
+          extra: { label: t('ob.skip'), onTap: () => this.obDone(nav) },
           back: () => nav.back()
         },
         nav

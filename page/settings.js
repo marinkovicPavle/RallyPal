@@ -95,6 +95,8 @@ Page(
         KEYS >= 2 ? this.guard('tapPoints', this.toggleRow(nav, 'tapPoints', v, t('opt.tapPoints.on'), t('opt.tapPoints.off'))) : null,
         this.guard('screen', { label: t('set.screen'), sub: this.option('screen', v.screen), onTap: () => this.pick(nav, 'screen') }),
         { label: t('set.language'), sub: this.langName(v.lang), onTap: () => nav.push((n) => this.language(n)) },
+        // the setup in 3 steps again
+        { label: t('set.quick'), sub: t('set.quickSub'), subColor: C.gray, onTap: () => goPage('index', { setup: 1 }) },
         { label: t('set.phone'), sub: t('set.phoneSub'), subColor: C.gray, onTap: () => nav.push((n) => this.phone(n)) },
         { label: t('set.feedback'), sub: t('set.feedbackSub'), subColor: C.gray, onTap: () => nav.push((n) => this.feedback(n)) },
         { label: t('set.about'), sub: t('set.aboutSub'), subColor: C.gray, onTap: () => nav.push((n) => this.about(n)) }

@@ -453,7 +453,7 @@ function setups() {
 // the walk-through shows the full version; the free trial has a walk of its own (trialWalk)
 function seed(w, withHistory) {
   w.files['settings.json'] = JSON.stringify({ values: { setups: setups() }, stamps: {} })
-  w.files['meta.json'] = JSON.stringify({ licensed: true })
+  w.files['meta.json'] = JSON.stringify({ onboarded: T0, licensed: true })
   if (!withHistory) return
   const list = setups()
   const by = (id) => list.filter((x) => x.id === id)[0]
@@ -467,7 +467,7 @@ function seed(w, withHistory) {
     S.playedMatch(by('bo5'), T0 - 22 * DAY, { want: 0, p: 0.5, seed: 3 })
   ]
   w.files['history.json'] = JSON.stringify(hist.sort((a, b) => b.start - a.start))
-  w.files['meta.json'] = JSON.stringify({ restoredAt: T0 - 30 * DAY, bgAsked: T0 - 30 * DAY, licensed: true })
+  w.files['meta.json'] = JSON.stringify({ onboarded: T0, restoredAt: T0 - 30 * DAY, bgAsked: T0 - 30 * DAY, licensed: true })
   w.bgPermission = true
   return hist
 }
@@ -805,7 +805,7 @@ async function trialWalk(device, lang) {
   S.setLang(lang)
   const w = new Watch(device, T0, lang)
   w.files['settings.json'] = JSON.stringify({ values: { setups: setups() }, stamps: {} })
-  w.files['meta.json'] = JSON.stringify({ restoredAt: T0 - DAY, bgAsked: T0 - DAY, trialIds: ['m1'] })
+  w.files['meta.json'] = JSON.stringify({ onboarded: T0, restoredAt: T0 - DAY, bgAsked: T0 - DAY, trialIds: ['m1'] })
   w.bgPermission = true
   w.open('index')
   if (!w.shows(tt('trial.left', { n: 2 }))) throw new Error(w.where() + ' no free matches line')
@@ -826,7 +826,7 @@ async function trialWalk(device, lang) {
   await w.swipeBack()
   if (w.name !== 'settings') throw new Error(w.where() + ' BACK from the unlock screen')
   // the last free match: the summary says it was the last one
-  w.files['meta.json'] = JSON.stringify({ restoredAt: T0 - DAY, bgAsked: T0 - DAY, trialIds: ['m1', 'm2'] })
+  w.files['meta.json'] = JSON.stringify({ onboarded: T0, restoredAt: T0 - DAY, bgAsked: T0 - DAY, trialIds: ['m1', 'm2'] })
   w.open('index')
   await w.tap(tt('home.newMatch'))
   await w.tap(tt('team.opponent'))
@@ -839,7 +839,7 @@ async function trialWalk(device, lang) {
   await w.tap(tt('home.unlock'))
   if (w.name !== 'unlock') throw new Error(w.where() + ' UNLOCK on the summary')
   // the free matches are used up: UNLOCK in NEW MATCH's place, settings read-only
-  w.files['meta.json'] = JSON.stringify({ restoredAt: T0 - DAY, bgAsked: T0 - DAY, trialIds: ['m1', 'm2', 'm3'] })
+  w.files['meta.json'] = JSON.stringify({ onboarded: T0, restoredAt: T0 - DAY, bgAsked: T0 - DAY, trialIds: ['m1', 'm2', 'm3'] })
   w.open('index')
   w.shot('Start, trial ended')
   if (!w.shows(tt('home.unlock'))) throw new Error(w.where() + ' no UNLOCK after the trial')
@@ -860,7 +860,7 @@ async function fromWalk(device, lang) {
   S.setLang(lang)
   const w = new Watch(device, T0, lang)
   seed(w, false)
-  w.files['meta.json'] = JSON.stringify({ licensed: true, restoredAt: T0 - DAY, bgAsked: T0 - DAY })
+  w.files['meta.json'] = JSON.stringify({ onboarded: T0, licensed: true, restoredAt: T0 - DAY, bgAsked: T0 - DAY })
   w.bgPermission = true
   w.open('index')
   await w.tap(tt('home.newMatch'))
@@ -890,7 +890,7 @@ async function serveWalk(device, lang) {
   const set = JSON.parse(w.files['settings.json'])
   set.values.serveStats = true
   w.files['settings.json'] = JSON.stringify(set)
-  w.files['meta.json'] = JSON.stringify({ licensed: true, restoredAt: T0 - DAY, bgAsked: T0 - DAY })
+  w.files['meta.json'] = JSON.stringify({ onboarded: T0, licensed: true, restoredAt: T0 - DAY, bgAsked: T0 - DAY })
   w.bgPermission = true
   w.open('index')
   await w.tap(tt('home.newMatch'))
@@ -905,6 +905,33 @@ async function serveWalk(device, lang) {
   if (w.shows(tt('serve.second'))) throw new Error(w.where() + ' FAULT did not toggle back')
   const sv = S.view(w.match()).stats.serve
   if (!sv || sv.aces[0] !== 1 || sv.doubleFaults[0] !== 1) throw new Error(w.where() + ' serve stats ' + JSON.stringify(sv))
+  return w
+}
+
+// The setup in 3 steps on a new install (ROAST-v2 9): the sport, singles or doubles, how points are given
+async function obWalk(device, lang) {
+  S.setLang(lang)
+  const w = new Watch(device, T0, lang)
+  w.bgPermission = true
+  w.open('index')
+  if (!w.shows(tt('sport.badminton'))) throw new Error(w.where() + ' no setup in 3 steps on a new install')
+  w.shot('Setup step 1, sport')
+  await w.tap(tt('sport.badminton'))
+  w.shot('Setup step 2, players')
+  await w.tap(tt('setup.doubles'))
+  if (device.keys >= 2) {
+    w.shot('Setup step 3, points')
+    await w.tap(tt('opt.tapPoints.off'))
+  }
+  if (!w.shows(tt('home.newMatch'))) throw new Error(w.where() + ' not back on the start screen')
+  w.shot('Start after the setup')
+  const set = JSON.parse(w.files['settings.json'])
+  const badm = set.values.setups.filter((x) => x.sport === 'badminton')[0]
+  if (!badm.doubles) throw new Error(w.where() + ' doubles not saved')
+  if (device.keys >= 2 && set.values.tapPoints !== false) throw new Error(w.where() + ' keys only not saved')
+  // not again on the next start
+  w.open('index')
+  if (w.shows(tt('ob.skip'))) throw new Error(w.where() + ' the setup came again')
   return w
 }
 
@@ -926,6 +953,8 @@ async function main() {
         shots.push(...fw.shots)
         const sw = await serveWalk(d, lang)
         shots.push(...sw.shots)
+        const ow = await obWalk(d, lang)
+        shots.push(...ow.shots)
       } catch (e) {
         failed++
         console.error(`${d.name} ${lang}: FAILED`, e.stack || e)
