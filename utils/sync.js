@@ -63,7 +63,7 @@ export function syncWithPhone(page, opts) {
       if (x.op === 'upsert' && !getMatch(x.id)) doneOutbox(x.id, x.op)
     })
     if (!first && !items.length) return Promise.resolve(out)
-    const params = { settings: loadSettings(), items, lang: watchLang(), trial: trialParams() }
+    const params = { settings: loadSettings(), items, lang: watchLang(), trial: trialParams(), addsDone: loadMeta().addsDone || [] }
     const lp = licenceParams()
     Object.keys(lp).forEach((k) => (params[k] = lp[k]))
     return request(page, 'SYNC', params).then((res) => {
@@ -71,6 +71,10 @@ export function syncWithPhone(page, opts) {
       if (applySettings(res)) out.settingsChanged = true
       if (applyPhoneEdits(res && res.edits)) out.historyChanged = true
       if (applyTrial(res)) out.trialChanged = true
+      // matches added by hand on the phone (they are on the phone already: nothing goes back)
+      const adds = res && Array.isArray(res.adds) ? res.adds : []
+      if (adds.length && mergeRestored(adds)) out.historyChanged = true
+      if (adds.length || (loadMeta().addsDone || []).length) saveMeta({ addsDone: adds.map((x) => x.id) })
       if (res && res.total !== undefined) total = Number(res.total) || 0
       applyDone(res, results)
       if (items.length && loadOutbox().length && res && res.done && res.done.length) return round(false)

@@ -13,6 +13,7 @@ import { SPORTS, OPTIONS, DOUBLES, defaultRules, sanitizeRules, sanitizeDoubles 
 import { MAX_SETUPS, newSetupId, clone } from '../shared/schema'
 import { normalize, setValue } from '../shared/settings'
 import { setupTitle, sportName } from '../shared/setups'
+import { manualRecord } from '../shared/record'
 import { flowMarks } from '../shared/match'
 import { clock, hm, timeOfDay, dayLabel, prettyScore, percent, resultOf } from '../shared/format'
 import { VERSION, AUTHOR, AUTHOR_SITE, AUTHOR_URL, SUPPORT_EMAIL, feedbackMail } from '../shared/about'
@@ -559,11 +560,12 @@ AppSettingsPage({
 
   history() {
     const list = this.matches()
-    if (!list.length) return [header(t('history.title')), card([note(p('hist.empty'))])]
+    const add = this.addCard()
+    if (!list.length) return [add, header(t('history.title')), card([note(p('hist.empty'))])]
     const storage = this.storage()
     const shown = Number(storage.getItem('uiHistoryCount') || HISTORY_PAGE)
     const open = storage.getItem('uiMatch') || ''
-    const out = []
+    const out = [add]
     let month = -1
     let items = []
     const flush = () => {
@@ -581,6 +583,71 @@ AppSettingsPage({
     flush()
     if (list.length > shown) out.push(button(p('hist.more'), () => this.ui('uiHistoryCount', String(shown + HISTORY_PAGE)), 'dark'))
     return out
+  },
+
+  // ---- a match added by hand (ROAST-v2 item 10, full version) -------------------------------------------
+
+  addDraft() {
+    const d = readJson(this.storage(), 'uiAdd', null)
+    return d && typeof d === 'object' ? d : null
+  },
+
+  setDraft(change) {
+    this.ui('uiAdd', JSON.stringify({ ...(this.addDraft() || {}), ...change }))
+  },
+
+  addCard() {
+    if (!this.trial().licensed) return card([lockedLine(p('add.button'), p('pay.full'))], { marginTop: '6px' })
+    const d = this.addDraft()
+    if (!d) {
+      const first = this.values().setups[0]
+      return button(p('add.button'), () => this.ui('uiAdd', JSON.stringify({ setup: first.id, day: 0, time: '18:00', dur: '60', result: 'won',
+        score: '', opponent: first.opponent || '' })), 'dark')
+    }
+    const setups = this.values().setups
+    const setup = setups.filter((s) => s.id === d.setup)[0] || setups[0]
+    const now = Date.now()
+    const days = [0, 1, 2, 3, 4, 5, 6].map((n) => [n, n === 0 ? t('day.today') : n === 1 ? t('day.yesterday') : dayLabel(now - n * 86400000, now)])
+    const items = [
+      View({ style: { padding: '12px 0 4px' } }, [txt(p('add.title'), 11, GRAY, { fontWeight: 'bold', letterSpacing: '0.5px' })]),
+      pills(p('add.setup'), setups.map((s) => [s.id, setupTitle(s)]), setup.id, (x) => {
+        const s = setups.filter((y) => y.id === x)[0]
+        this.setDraft({ setup: x, opponent: (s && s.opponent) || '' })
+      }),
+      pills(p('add.day'), days, d.day, (x) => this.setDraft({ day: Number(x) })),
+      input(p('add.time'), d.time, p('add.timeHint'), (x) => this.setDraft({ time: x })),
+      input(p('add.dur'), d.dur, '60', (x) => this.setDraft({ dur: x })),
+      pills(p('add.result'), [['won', p('add.won')], ['lost', p('add.lost')], ['none', p('add.none')]], d.result, (x) => this.setDraft({ result: x })),
+      input(p('add.score'), d.score, p('add.scoreHint'), (x) => this.setDraft({ score: x })),
+      input(p(setup.doubles ? 'setup.opponents' : 'setup.opponent'), d.opponent, p(setup.doubles ? 'setup.opponentsHint' : 'setup.opponentHint'),
+        (x) => this.setDraft({ opponent: x })),
+      d.bad ? note(p('add.bad'), RED) : null,
+      button(p('add.save'), () => this.saveAdded(setup)),
+      View({ style: { marginTop: '-6px' } }, [button(p('add.cancel'), () => this.ui('uiAdd', ''), 'soft')]),
+      note(p('add.note'))
+    ]
+    return card(items, { border: `2px solid ${LIME}`, marginTop: '6px' })
+  },
+
+  saveAdded(setup) {
+    const d = this.addDraft() || {}
+    const tm = /^(\d{1,2})[:.](\d{2})$/.exec(String(d.time || '').trim())
+    const dur = Math.round(Number(d.dur))
+    const day = new Date()
+    day.setHours(0, 0, 0, 0)
+    day.setDate(day.getDate() - (Number(d.day) || 0))
+    const ok = tm && Number(tm[1]) < 24 && Number(tm[2]) < 60 && dur >= 1 && dur <= 600
+    const start = ok ? day.getTime() + (Number(tm[1]) * 60 + Number(tm[2])) * 60000 : 0
+    const list = this.matches()
+    let id = 'h' + start
+    while (list.some((r) => r.id === id)) id = 'h' + (Number(id.slice(1)) + 1000)
+    const rec = ok ? manualRecord({ id, start, dur: dur * 60, setup, title: setupTitle(setup), result: d.result, score: d.score, opponent: d.opponent }) : null
+    if (!rec) return this.setDraft({ bad: true })
+    const storage = this.storage()
+    storage.setItem('history', JSON.stringify(list.concat([rec]).sort((a, b) => b.start - a.start)))
+    storage.setItem('phoneAdds', JSON.stringify(readJson(storage, 'phoneAdds', []).concat([id])))
+    this.ui('uiAdd', '')
+    this.ui('cmd', JSON.stringify({ do: 'added', id, at: Date.now() }))
   },
 
   monthHeader(list, at) {
@@ -765,6 +832,7 @@ AppSettingsPage({
     const storage = this.storage()
     if (storage.getItem('uiDeleteMatch') !== id) return this.ui('uiDeleteMatch', id)
     storage.setItem('history', JSON.stringify(this.matches().filter((r) => r.id !== id)))
+    storage.setItem('phoneAdds', JSON.stringify(readJson(storage, 'phoneAdds', []).filter((x) => x !== id)))
     this.editMatch(id, { op: 'delete' })
     this.ui('uiDeleteMatch', '')
     this.ui('uiMatch', '')

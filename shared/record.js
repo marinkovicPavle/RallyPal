@@ -124,3 +124,44 @@ export function restoreFrom(meta, phoneTotal, have, now, kept) {
   if (want > have && now - m.restoredAt >= RESTORE_AGAIN_MS) return 0
   return -1
 }
+
+// A match entered by hand on the phone (ROAST-v2 item 10): no events, statistics or heart rate; the score as
+// typed, from your side ("6-4 3-6 10-7"). result: 'won' | 'lost' | 'none'. Returns null when the score can't
+// be read.
+export function manualRecord(o) {
+  const score = cleanScore(o.score)
+  if (score === null) return null
+  const setup = o.setup || {}
+  return {
+    v: 1,
+    id: o.id,
+    manual: true,
+    start: o.start,
+    end: o.start + o.dur * 1000,
+    sport: setup.sport,
+    rules: setup.rules,
+    doubles: !!setup.doubles,
+    first: 0,
+    mine: 0,
+    ev: [],
+    setup: setup.id || null,
+    title: o.title || '',
+    names: { me: '', opponent: o.opponent || '', partner: setup.partner || '' },
+    winner: o.result === 'won' ? 0 : o.result === 'lost' ? 1 : null,
+    draw: false,
+    ended: o.result !== 'won' && o.result !== 'lost',
+    score,
+    dur: o.dur,
+    stats: null,
+    hrAvg: null,
+    hrMax: null,
+    curve: []
+  }
+}
+
+// "6-4 6:3 7–6" -> "6-4 6-3 7-6"; '' stays ''; null when it isn't a score
+export function cleanScore(text) {
+  const s = String(text || '').replace(/[:–—]/g, '-').replace(/\s*-\s*/g, '-').replace(/[,;]/g, ' ').trim().replace(/\s+/g, ' ')
+  if (!s) return ''
+  return /^\d{1,2}-\d{1,2}( \d{1,2}-\d{1,2})*$/.test(s) ? s : null
+}

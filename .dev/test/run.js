@@ -9,7 +9,7 @@ import { TEXT } from '../../setting/text'
 import { DEFAULT_SETUPS, MAX_SETUPS, defaults, sanitize, sanitizeSetups, findSetup } from '../../shared/schema'
 import { normalize, setValue, merge } from '../../shared/settings'
 import { setupTitle, fittedTitle, setupExtra, matchNames, teamName, partnerName } from '../../shared/setups'
-import { addHr, mergeHr, hrStats, makeRecord, matchOf, wonCount, restoreFrom, RESTORE_AGAIN_MS } from '../../shared/record'
+import { addHr, mergeHr, hrStats, makeRecord, matchOf, wonCount, restoreFrom, RESTORE_AGAIN_MS, manualRecord, cleanScore } from '../../shared/record'
 import { trialOf, canEdit, counts, playable, trialLine, FREE_MATCHES, MIN_MATCH_SEC } from '../../shared/licence'
 import { devHash, matchHash } from '../../shared/trialhash'
 import { hrMaxOf, zoneOf, zonesFromCurve, zonePercents, records, newRecords } from '../../shared/insights'
@@ -2010,6 +2010,41 @@ test('sync: the answer carries the trial, the licence and how many matches the p
     assert.equal(res.total, 0)
     assert.deepEqual(res.trial, { ids: [] })
     assert.deepEqual(res.licence, { licensed: false })
+  })
+})
+
+test('a match added by hand: the score as typed, to the watch until it has it, to Strava as a manual activity (ROAST-v2 10)', () => {
+  assert.equal(cleanScore('6-4  6:3, 7–6'), '6-4 6-3 7-6')
+  assert.equal(cleanScore(''), '')
+  assert.equal(cleanScore('won easily'), null)
+  const setup = { id: 'tennis', sport: 'tennis', rules: defaultRules('tennis'), doubles: false, opponent: 'Marko' }
+  const rec = manualRecord({ id: 'h1', start: T0, dur: 3600, setup, title: 'Tennis', result: 'won', score: '6-4 6-3', opponent: 'Marko' })
+  assert.deepEqual([rec.winner, rec.ended, rec.score, rec.names.opponent, rec.ev.length, rec.manual], [0, false, '6-4 6-3', 'Marko', 0, true])
+  assert.equal(resultOf(rec), 'won')
+  assert.deepEqual(detailRows(rec)[0], ['Duration', '1:00:00'])
+  assert.equal(manualRecord({ id: 'h2', start: T0, dur: 60, setup, result: 'won', score: 'x' }), null)
+  const none = manualRecord({ id: 'h3', start: T0, dur: 600, setup, result: 'none', score: '' })
+  assert.equal(resultOf(none), 'ended')
+  // the phone sends it with every sync until the watch says it has it
+  const net = fakeNet({
+    'GET /api/v3/athlete/activities': { status: 200, data: [] },
+    'POST /api/v3/activities': { status: 201, data: { id: 44 } },
+    'PUT /api/v3/activities/44': { status: 200, data: { id: 44 } }
+  })
+  const { store, core } = phone(net, { stravaAuth: AUTH, history: JSON.stringify([rec]), phoneAdds: JSON.stringify(['h1']) })
+  return core.sync({ settings: normalize(null), items: [] }).then((res) => {
+    assert.deepEqual(res.adds.map((x) => x.id), ['h1'])
+    return core.sync({ settings: normalize(null), items: [], addsDone: ['h1'] })
+  }).then((res) => {
+    assert.deepEqual(res.adds, [])
+    assert.deepEqual(JSON.parse(store.phoneAdds), [])
+    core.added('h1')
+    return core.sendOutbox()
+  }).then((r) => {
+    assert.equal(r.sent, 1)
+    const post = net.calls.filter((c) => c.method === 'POST')[0]
+    assert.ok(post.url.endsWith('/activities'), 'a manual activity: no heart rate file')
+    assert.equal(JSON.parse(post.body).elapsed_time, 3600)
   })
 })
 

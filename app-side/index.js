@@ -45,6 +45,10 @@ function runCommand(value) {
   if (cmd.do === 'intervalsCheck') return core.intervalsCheck()
   if (cmd.do === 'stravaCheck') return core.stravaCheck()
   if (cmd.do === 'retry') return send(0, true)
+  if (cmd.do === 'added') {
+    core.added(cmd.id)
+    return send()
+  }
   return Promise.resolve()
 }
 

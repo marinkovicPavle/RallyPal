@@ -16,6 +16,7 @@
 //   stravaClientId, stravaClientSecret, stravaAuth (JSON tokens), stravaCode, stravaSend ('false' = off)
 //   intervalsKey, intervalsAthlete
 //   stravaBase the Strava API address that answered last (old or new, see STRAVA_NEW)
+//   phoneAdds  [id] matches added by hand on the phone page, sent to the watch with every sync until it has them
 //   sentGone   { id: { sync, at } } what was sent of a match the watch deleted (UNDO on the summary), so the
 //              same match coming back updates its Strava and Intervals.icu activities instead of adding new ones
 //   licence, trialSeen, KPAY_ACCOUNTTOKEN, kpayDevice, trialPhoneId  the free trial and the purchase (licence.js)
@@ -173,11 +174,20 @@ export function createCore(storage, clock, net) {
     const items = Array.isArray(p.items) ? p.items : []
     const pending = edits()
     const done = items.filter((x) => x && x.id).map((x) => applyItem(x, pending))
+    // matches added on the phone: the watch said which ones it has, the others go along
+    const got = Array.isArray(p.addsDone) ? p.addsDone : []
+    const adds = readJson('phoneAdds', []).filter((id) => got.indexOf(id) < 0)
+    writeJson('phoneAdds', adds)
+    const addRecs = history().filter((x) => adds.indexOf(x.id) >= 0).map((x) => {
+      const c = { ...x }
+      delete c.curve
+      return c
+    })
     if (p.lang) storage.setItem('watchLang', String(p.lang))
     writeJson('phoneEdits', pending)
     storage.setItem('lastSync', String(now()))
     return Promise.all([lic.trial(p.trial), lic.onSync()]).then(([trial, licence]) => ({
-      settings: m.merged, done, edits: pending, total: history().length, trial, licence
+      settings: m.merged, done, edits: pending, total: history().length, trial, licence, adds: addRecs
     }))
   }
 
@@ -602,6 +612,12 @@ export function createCore(storage, clock, net) {
     })
   }
 
+  // A match added by hand on the phone page: to Strava and Intervals.icu too (full version, 5 minutes or more)
+  function added(id) {
+    const rec = history().filter((x) => x.id === id)[0]
+    if (rec && services().any && lic.licensed() && counts(rec)) queue(id)
+  }
+
   // A match renamed on the phone page: its title on Strava and Intervals.icu changes with it
   function resendEdited() {
     const sent = history().filter((x) => x.sync && (x.sync.stravaId || x.sync.intervalsId))
@@ -616,7 +632,7 @@ export function createCore(storage, clock, net) {
   }
 
   return { sync, restore, setSetting, history, readJson, writeJson, intervalsCheck, stravaCheck, stravaDisconnect, sendOutbox,
-    resendEdited, failedCount, services, licence: lic.licence, licensed: lic.licensed }
+    resendEdited, failedCount, services, licence: lic.licence, licensed: lic.licensed, added }
 }
 
 function httpError(what, status, data) {
