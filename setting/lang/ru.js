@@ -204,7 +204,7 @@ export default {
   'add.won': "Победа",
   'add.lost': "Поражение",
   'add.none': "Без результата",
-  'add.score': "Счёт, ваш первым",
+  'add.score': "Счёт, сначала ваш",
   'add.scoreHint': "напр. 6-4 3-6 10-7",
   'add.save': "Сохранить матч",
   'add.cancel': "Отмена",

@@ -73,7 +73,7 @@ export default {
   'end.ok': "STOP",
   'new.title': "Nieuwe wedstrijd?",
   'new.body': "Deze wedstrijd stopt en wordt opgeslagen zoals hij is.",
-  'new.ok': "NIEUWE WEDSTRIJD",
+  'new.ok': "STARTEN",
   'leave.title': "RallyPal verlaten?",
   'leave.body': "De wedstrijd loopt door. Open RallyPal opnieuw om verder te tellen.",
   'leave.ok': "VERLATEN",

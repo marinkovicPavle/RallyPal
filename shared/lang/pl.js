@@ -199,7 +199,7 @@ export default {
   'serve.fault': "BŁĄD",
   'serve.second': "2. SERWIS",
   'serve.ace': "AS",
-  'serve.df': "PODWÓJNY BŁĄD",
+  'serve.df': "PODW. BŁĄD",
   'stat.aces': "Asy",
   'stat.df': "Podwójne błędy",
   'stat.firstIn': "1. serwis w korcie",
