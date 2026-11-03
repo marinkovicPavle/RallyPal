@@ -13,7 +13,10 @@ import { readFileSync, writeFileSync } from '@zos/fs'
 const READ_EVERY_MS = 15000
 // the match page marks itself every 10 s while it is on screen; then it records the heart rate itself
 const ALIVE_MS = 20000
-const FLUSH_EVERY_MS = 30000
+// written this often while the screen is off: when the wrist comes up the screen turns on and the service
+// may no longer write, so what it holds since the last write is lost; every 5 s keeps that to one sample
+// (it was 30 s, ROAST item 12)
+const FLUSH_EVERY_MS = 5000
 const SAMPLE_GAP_S = 5
 const KEPT = 1200
 // no point for this long: the match was left open, the heart rate is no longer recorded (shared/match.js
