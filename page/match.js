@@ -12,7 +12,7 @@
 import { HeartRate } from '@zos/sensor'
 import { setWakeUpRelaunch, setPageBrightTime, resetPageBrightTime, pauseDropWristScreenOff, resetDropWristScreenOff } from '@zos/display'
 import {
-  ROUND, KEYS, C, W, H, MX, px, sy, around, at, text, setText, rect, img, cover, marker, markerSize, pillButton, purpleButton, textWidth,
+  ROUND, KEYS, C, W, H, MX, px, sy, around, at, text, setText, rect, outline, img, cover, marker, markerSize, pillButton, purpleButton, textWidth,
   fitSize, HEART
 } from '../utils/ui'
 import { screen, heading, confirm, question, toast, LIST } from '../utils/widgets'
@@ -169,11 +169,14 @@ Page({
 
   // ---- actions -----------------------------------------------------------------------------------
 
-  point(team) {
+  // kind (serve statistics): 'a' ace, 'd' double fault; a point after FAULT is on the second serve
+  point(team, kind) {
     const st = this.state
     if (st.gone) return
-    const res = addPoint(st.m, team, Date.now())
+    const k = kind || (st.m.second2 ? '2' : null)
+    const res = addPoint(st.m, team, Date.now(), st.m.serveStats ? k : null)
     if (!res) return
+    st.m.second2 = false
     saveActive(st.m)
     if (res === 'match') return this.finish('summary')
     pointBuzz(res)
@@ -181,11 +184,42 @@ Page({
     st.nav.redraw()
   },
 
+  // UNDO takes back a FAULT first, then the last point
   undoPoint() {
     const st = this.state
-    if (st.gone || !undo(st.m)) return
+    if (st.gone) return
+    if (st.m.second2) st.m.second2 = false
+    else if (!undo(st.m)) return
     saveActive(st.m)
     st.nav.redraw()
+  },
+
+  // FAULT: the first serve was out, the next rally is on the second serve (tap again to take it back)
+  fault() {
+    const st = this.state
+    if (st.gone) return
+    st.m.second2 = !st.m.second2
+    saveActive(st.m)
+    st.nav.redraw()
+  },
+
+  // Serve statistics (ROAST item 20): FAULT or 2ND SERVE, and ACE or DOUBLE FAULT, under the score
+  serveButtons(v) {
+    const st = this.state
+    const R = ROUND
+    const y = R ? 414 : 414
+    const w = R ? 110 : 150
+    const xs = R ? [178, 302] : [112, 278]
+    const second = !!st.m.second2
+    const fb = around(xs[0], y, w, 38)
+    pillButton(fb, second ? t('serve.second') : t('serve.fault'), 15, () => this.fault(), second ? C.lime : C.white)
+    if (second) {
+      // the outline is drawn over the button, so a cover on top keeps the tap
+      outline(fb, C.lime, 19, 2)
+      cover(fb, () => this.fault())
+    }
+    if (second) purpleButton(around(xs[1], y, w, 38), t('serve.df'), 15, () => this.point(1 - v.server, 'd'))
+    else purpleButton(around(xs[1], y, w, 38), t('serve.ace'), 15, () => this.point(v.server, 'a'))
   },
 
   openMenu() {
@@ -254,14 +288,18 @@ Page({
     const left = this.restLeft(v, Date.now())
     st.restOn = left > 0
     const label = st.restOn ? this.restText(v, left) : this.labelText(v)
+    // with serve statistics the label moves up to make room for their buttons
+    const serving = !!m.serveStats && !v.done
+    const labelY = serving ? (R ? 378 : 370) : D.labelY
+    const labelSize = serving ? 20 : D.labelSize
     if (label) {
-      const lh = Math.round(D.labelSize * 1.4)
-      const room = R ? Math.min(380, chordAt(D.labelY, lh)) : 360
+      const lh = Math.round(labelSize * 1.4)
+      const room = R ? Math.min(380, chordAt(labelY, lh)) : 360
       // a countdown changes its digits every second: its size fits the widest of them from the start
       const size = st.restOn
-        ? Math.min(...['0:00', '4:44', '8:88'].map((d) => fitSize(this.restText(v, 0).replace(/\S+$/, d), D.labelSize, px(room), 12)))
-        : D.labelSize
-      live.label = at(MX, D.labelY, room, label, size, C.lime, 'mm', { min: Math.min(15, size) })
+        ? Math.min(...['0:00', '4:44', '8:88'].map((d) => fitSize(this.restText(v, 0).replace(/\S+$/, d), labelSize, px(room), 12)))
+        : labelSize
+      live.label = at(MX, labelY, room, label, size, C.lime, 'mm', { min: Math.min(15, size) })
     }
     // a tap on a half of the screen is that side's point; the buttons in the middle stay free. "Points by
     // tap" off: only the keys give points (a watch with one key always keeps the taps)
@@ -280,6 +318,7 @@ Page({
     rect({ x: px(mx + bw / 2 + 8), y: ly, w: px(l1 - mx - bw / 2 - 8), h: px(2) }, C.dark)
     purpleButton(around(ux, D.midY, bw, bh), t('match.undo'), D.btnSize, () => this.undoPoint())
     pillButton(around(mx, D.midY, bw, bh), t('match.menu'), D.btnSize, () => this.openMenu())
+    if (serving) this.serveButtons(v)
     st.live = live
     const them = () => this.point(1)
     const me = () => this.point(0)

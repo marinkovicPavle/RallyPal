@@ -33,7 +33,22 @@ export function detailRows(rec) {
   if (rec.hrAvg) rows.push([t('stat.hr'), t('stat.hrValue', { a: rec.hrAvg, b: rec.hrMax })])
   keyRows(rec).forEach((r) => rows.push(r))
   if (s.breakPoints) rows.push([t('stat.streak'), streak(s)])
+  serveRows(rec).forEach((r) => rows.push(r))
   return rows
+}
+
+// Serve statistics (ROAST item 20), when the match was played with them on: aces and double faults for
+// both sides, and your first serve in, points won on your first and second serve
+export function serveRows(rec) {
+  const v = rec.stats && rec.stats.serve
+  if (!v) return []
+  return [
+    [t('stat.aces'), pair(v.aces)],
+    [t('stat.df'), pair(v.doubleFaults)],
+    [t('stat.firstIn'), percent(v.firstIn[0], v.firstIn[0] + v.second[0])],
+    [t('stat.firstWon'), percent(v.firstWon[0], v.firstIn[0])],
+    [t('stat.secondWon'), percent(v.secondWon[0], v.second[0])]
+  ]
 }
 
 // YOU WON / YOU LOST / DRAW / MATCH ENDED and its color name

@@ -6,6 +6,8 @@
 // Teams: 0 is the watch wearer (and partner), 1 the opponents. Players inside a team: 0 and 1
 // (for team 0: 0 = you, 1 = partner).
 // Events: ['p', winner, sec]           a rally won by team `winner`
+//         ['p', winner, kind, sec]     ... with serve statistics on (ROAST item 20): kind 'a' an ace, 'd' a
+//                                      double fault, '2' won or lost on the second serve
 //         ['s', team, player, sec]     server changed by hand (menu)
 //         ['e', sec]                   match ended by hand before anyone won
 //         ['e', winner, sec]           ... and the players said who won (retirement, court time over)
@@ -113,12 +115,14 @@ function secOf(m, now) {
 
 // Returns what the point did ('point' | 'game' | 'set' | 'match') for the vibration, or null when
 // the match is already over.
-export function addPoint(m, winner, now) {
+// kind (serve statistics): 'a' ace, 'd' double fault, '2' a rally on the second serve
+export function addPoint(m, winner, now, kind) {
   const st = replay(m)
   if (st.done) return null
   const w = winner ? 1 : 0
-  pointTo(st, w)
-  m.ev.push(['p', w, secOf(m, now)])
+  const k = kind === 'a' || kind === 'd' || kind === '2' ? kind : null
+  pointTo(st, w, k)
+  m.ev.push(k ? ['p', w, k, secOf(m, now)] : ['p', w, secOf(m, now)])
   return st.last
 }
 
@@ -195,7 +199,7 @@ export function flowMarks(m) {
   for (let i = 0; i < m.ev.length; i++) {
     const e = m.ev[i]
     if (e[0] === 'p') {
-      pointTo(st, e[1])
+      pointTo(st, e[1], e.length > 3 ? e[2] : null)
       wins.push(e[1])
       if (st.model !== 'total' && (st.last === (st.model === 'tennis' ? 'set' : 'game') || st.last === 'match')) ends.push(wins.length)
     } else if (e[0] === 's') applyServer(st, e[1], e[2])
@@ -208,7 +212,7 @@ export function replay(m) {
   const st = init(m)
   for (let i = 0; i < m.ev.length; i++) {
     const e = m.ev[i]
-    if (e[0] === 'p') pointTo(st, e[1])
+    if (e[0] === 'p') pointTo(st, e[1], e.length > 3 ? e[2] : null)
     else if (e[0] === 's') applyServer(st, e[1], e[2])
     else if (e[0] === 'e') endNow(st, e.length > 2 ? e[1] : null)
   }
@@ -265,6 +269,10 @@ function init(m) {
       bpw: [0, 0], // ... won
       tbw: [0, 0], // tie-breaks won
       best: [0, 0], // longest run of points
+      ace: [0, 0], // serve statistics: aces, double faults, rallies on the second serve and those won
+      df: [0, 0],
+      sec: [0, 0],
+      secWon: [0, 0],
       run: [-1, 0]
     }
   }
@@ -320,14 +328,14 @@ function turn(st, team, newGame, side) {
   return { team, player, side, fresh }
 }
 
-function pointTo(st, w) {
+function pointTo(st, w, kind) {
   if (st.done) return
   const sv = serverOf(st)
   const before = Math.max(st.p[0], st.p[1])
   st.last = 'point'
   st.ends = false
   st.rest = 0
-  count(st, sv.team, w)
+  count(st, sv.team, w, kind)
   if (sv.fresh) st.turns[sv.team]++
   st.lastSrv = sv.team
   if (st.model === 'tennis') tennisPoint(st, sv.team, w)
@@ -394,11 +402,15 @@ function changeEnds(st, before) {
   }
 }
 
-function count(st, server, w) {
+function count(st, server, w, kind) {
   const s = st.s
   s.pts[w]++
   s.sp[server]++
   if (w === server) s.sw[server]++
+  if (kind === 'a') s.ace[server]++
+  if (kind === 'd') s.df[server]++
+  if (kind === '2' || kind === 'd') s.sec[server]++
+  if (kind === '2' && w === server) s.secWon[server]++
   if (s.run[0] === w) s.run[1]++
   else s.run = [w, 1]
   if (s.run[1] > s.best[w]) s.best[w] = s.run[1]
@@ -701,7 +713,12 @@ export function view(m) {
       breakPoints: st.model === 'tennis' ? s.bpc : null,
       breaks: st.model === 'tennis' ? s.bpw : null,
       tiebreaks: st.model === 'tennis' ? s.tbw : null,
-      streak: s.best
+      streak: s.best,
+      // serve statistics, for a match played with them on (tennis, padel)
+      serve: m.serveStats && st.model === 'tennis'
+        ? { aces: s.ace, doubleFaults: s.df, firstIn: [s.sp[0] - s.sec[0], s.sp[1] - s.sec[1]],
+          firstWon: [s.sw[0] - s.secWon[0], s.sw[1] - s.secWon[1]], second: s.sec, secondWon: s.secWon }
+        : null
     }
   }
 }

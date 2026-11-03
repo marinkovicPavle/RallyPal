@@ -882,6 +882,32 @@ async function fromWalk(device, lang) {
   return w
 }
 
+// Serve statistics (ROAST 20): FAULT, 2ND SERVE, ACE and DOUBLE FAULT under the score in tennis
+async function serveWalk(device, lang) {
+  S.setLang(lang)
+  const w = new Watch(device, T0, lang)
+  seed(w, false)
+  const set = JSON.parse(w.files['settings.json'])
+  set.values.serveStats = true
+  w.files['settings.json'] = JSON.stringify(set)
+  w.files['meta.json'] = JSON.stringify({ licensed: true, restoredAt: T0 - DAY, bgAsked: T0 - DAY })
+  w.bgPermission = true
+  w.open('index')
+  await w.tap(tt('home.newMatch'))
+  await w.tap(tt('team.you'))
+  w.shot('Match, serve stats')
+  await w.tap(tt('serve.ace'))
+  await w.tap(tt('serve.fault'))
+  w.shot('Match, second serve')
+  await w.tap(tt('serve.df'))
+  await w.tap(tt('serve.fault'))
+  await w.tap(tt('serve.second'))
+  if (w.shows(tt('serve.second'))) throw new Error(w.where() + ' FAULT did not toggle back')
+  const sv = S.view(w.match()).stats.serve
+  if (!sv || sv.aces[0] !== 1 || sv.doubleFaults[0] !== 1) throw new Error(w.where() + ' serve stats ' + JSON.stringify(sv))
+  return w
+}
+
 async function main() {
   fs.mkdirSync(OUT, { recursive: true })
   await loadLib()
@@ -898,6 +924,8 @@ async function main() {
         shots.push(...tw.shots)
         const fw = await fromWalk(d, lang)
         shots.push(...fw.shots)
+        const sw = await serveWalk(d, lang)
+        shots.push(...sw.shots)
       } catch (e) {
         failed++
         console.error(`${d.name} ${lang}: FAILED`, e.stack || e)

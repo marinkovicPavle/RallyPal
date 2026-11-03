@@ -90,6 +90,7 @@ Page(
         }),
         this.guard('changeEnds', this.toggleRow(nav, 'changeEnds', v, t('opt.changeEnds.on'))),
         this.guard('restTimer', this.toggleRow(nav, 'restTimer', v, t('opt.restTimer.on'))),
+        this.guard('serveStats', this.toggleRow(nav, 'serveStats', v, t('opt.serveStats.on'))),
         // a watch with one key needs the taps (its key opens the menu)
         KEYS >= 2 ? this.guard('tapPoints', this.toggleRow(nav, 'tapPoints', v, t('opt.tapPoints.on'), t('opt.tapPoints.off'))) : null,
         this.guard('screen', { label: t('set.screen'), sub: this.option('screen', v.screen), onTap: () => this.pick(nav, 'screen') }),

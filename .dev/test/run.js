@@ -1548,6 +1548,32 @@ test('from a score: a match picked up at sets, games and points (ROAST 18)', () 
   assert.deepEqual([v.server, v.player, v.call], [0, 1, '4-2-1'])
 })
 
+test('serve statistics: aces, double faults, first and second serve (ROAST 20)', () => {
+  const m = mk('tennis')
+  m.serveStats = true
+  // you serve the first game: an ace, a double fault, a point won on the second serve, a first-serve point
+  addPoint(m, 0, T0 + 1000, 'a')
+  addPoint(m, 1, T0 + 2000, 'd')
+  addPoint(m, 0, T0 + 3000, '2')
+  addPoint(m, 0, T0 + 4000)
+  const v = view(m).stats.serve
+  assert.deepEqual([v.aces, v.doubleFaults, v.second, v.secondWon], [[1, 0], [1, 0], [2, 0], [1, 0]])
+  assert.deepEqual([v.firstIn[0], v.firstWon[0]], [2, 2])
+  assert.equal(view(m).games[0], 0, '3-1 in points, the game goes on')
+  addPoint(m, 0, T0 + 5000)
+  assert.equal(view(m).games[0], 1)
+  const rec = makeRecord(m, T0 + 6000)
+  assert.equal(rec.serveStats, true)
+  const rows = detailRows(rec).map((r) => r[0])
+  assert.ok(rows.indexOf('Aces') >= 0 && rows.indexOf('2nd serve won') >= 0)
+  assert.equal(detailRows(rec).filter((r) => r[0] === '1st serve in')[0][1], '60%')
+  // undo goes through the kinds; a match without the setting has no serve rows
+  undo(m)
+  assert.equal(view(m).stats.serve.aces[0], 1)
+  assert.equal(view(mk('tennis')).stats.serve, null)
+  assert.equal(view({ ...mk('squash'), serveStats: true }).stats.serve, null, 'tennis and padel only')
+})
+
 test('rest: the rest each sport allows before the next rally (ROAST 16)', () => {
   const m = mk('tennis')
   play(m, holds(1))

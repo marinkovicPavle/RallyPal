@@ -19,7 +19,7 @@ import { VERSION, AUTHOR, AUTHOR_SITE, AUTHOR_URL, SUPPORT_EMAIL, feedbackMail }
 import { t, setLang, LANGS, LANG_NAMES } from '../shared/i18n'
 import { trialOf, canEdit, FREE_MATCHES, PRICE, PAY_URL, RESTORE_URL } from '../shared/licence'
 import { ZONE_COLORS, zonePercents, records, RECORDS } from '../shared/insights'
-import { recordLabel, recordValue } from '../shared/stats'
+import { recordLabel, recordValue, serveRows } from '../shared/stats'
 import { TEXT } from './text'
 import { MARKERS } from './markers'
 import { gettext } from 'i18n'
@@ -726,6 +726,7 @@ AppSettingsPage({
     if (s.breakPoints) rows.push([t('stat.breaks'), p('st.of', { a: s.breaks[0], b: s.breakPoints[0] })])
     if (s.streak) rows.push([t('stat.streak'), s.streak[0] === 1 ? t('stat.streakOne') : t('stat.streakValue', { n: s.streak[0] })])
     if (s.tiebreaks && s.tiebreaks[0] + s.tiebreaks[1]) rows.push([p('st.tiebreaks'), p('st.of', { a: s.tiebreaks[0], b: s.tiebreaks[0] + s.tiebreaks[1] })])
+    serveRows(r).forEach((x) => rows.push(x))
     return col([
       View({ style: { padding: '8px 0 4px' } }, [txt(p('hist.stats'), 11, GRAY, { fontWeight: 'bold', letterSpacing: '0.5px' })]),
       ...rows.map((x) => row([txt(x[0], 14, DARK, { flex: 1 }), txt(x[1], 14, INK, { fontWeight: 'bold', textAlign: 'right' })],
@@ -953,6 +954,7 @@ AppSettingsPage({
         sw('labels', p('labels.sub')),
         sw('changeEnds', p('ends.sub')),
         sw('restTimer', p('rest.sub')),
+        sw('serveStats', p('serveStats.sub')),
         sw('tapPoints', p('tap.sub')),
         choose('screen', ['wrist', 'always'], p('screen.note'))
       ]),

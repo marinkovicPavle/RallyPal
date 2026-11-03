@@ -19,6 +19,7 @@ import { syncWithPhone } from '../utils/sync'
 import { trial } from '../utils/licence'
 import { newMatch, fromRows, cleanFrom } from '../shared/match'
 import { findSetup } from '../shared/schema'
+import { modelOf } from '../shared/rules'
 import { setupTitle, fittedTitle, setupExtra, matchNames, teamName, partnerName } from '../shared/setups'
 import { lastLine } from '../shared/card'
 import { playable, trialLine } from '../shared/licence'
@@ -296,6 +297,8 @@ Page(
       const now = Date.now()
       const m = newMatch(setup, { ...choice, from: this.from() }, now)
       st.from = null
+      // serve statistics (full version, tennis and padel)
+      if (v.serveStats && trial().licensed && modelOf(setup.sport, setup.rules) === 'tennis') m.serveStats = true
       m.title = setupTitle(setup)
       m.names = matchNames(setup, v)
       saveActive(m)

@@ -193,6 +193,7 @@ const en = {
   'st.records': 'RECORDS',
   'hist.zones': 'HEART RATE ZONES',
   'rest.sub': 'A countdown of the rest the rules allow between games and sets, and a vibration when it is over.',
+  'serveStats.sub': 'Tennis and padel: FAULT, ACE and DOUBLE FAULT under the score, for aces, double faults and your first and second serve.',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Free trial: {n} of {total} matches left',
   'pay.ended': 'Free trial ended',
@@ -395,6 +396,7 @@ const es = {
   'st.records': 'RÉCORDS',
   'hist.zones': 'ZONAS DE PULSO',
   'rest.sub': 'Una cuenta atrás del descanso que permiten las reglas entre juegos y sets, y una vibración al terminar.',
+  'serveStats.sub': 'Tenis y pádel: FALTA, ACE y DOBLE FALTA bajo el marcador, para aces, dobles faltas y tu primer y segundo saque.',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Prueba gratis: quedan {n} de {total} partidos',
   'pay.ended': 'Prueba gratis terminada',
@@ -596,6 +598,7 @@ const it = {
   'st.records': 'RECORD',
   'hist.zones': 'ZONE DI BATTITO',
   'rest.sub': 'Un conto alla rovescia del riposo consentito tra game e set, e una vibrazione alla fine.',
+  'serveStats.sub': 'Tennis e padel: FALLO, ACE e DOPPIO FALLO sotto il punteggio, per ace, doppi falli e la tua prima e seconda.',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Prova gratuita: {n} di {total} partite rimaste',
   'pay.ended': 'Prova gratuita terminata',
@@ -795,6 +798,7 @@ const de = {
   'st.records': 'REKORDE',
   'hist.zones': 'PULSZONEN',
   'rest.sub': 'Ein Countdown der erlaubten Pause zwischen Spielen und Sätzen und eine Vibration, wenn sie vorbei ist.',
+  'serveStats.sub': 'Tennis und Padel: FEHLER, ASS und DOPPELFEHLER unter dem Spielstand, für Asse, Doppelfehler und deinen ersten und zweiten Aufschlag.',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Gratis-Test: noch {n} von {total} Matches',
   'pay.ended': 'Gratis-Test beendet',
@@ -997,6 +1001,7 @@ const fr = {
   'st.records': 'RECORDS',
   'hist.zones': 'ZONES CARDIAQUES',
   'rest.sub': 'Un compte à rebours du repos autorisé entre les jeux et les sets, et une vibration à la fin.',
+  'serveStats.sub': 'Tennis et padel : FAUTE, ACE et DOUBLE FAUTE sous le score, pour les aces, doubles fautes et vos première et seconde balles.',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Essai gratuit : {n} matchs sur {total} restants',
   'pay.ended': 'Essai gratuit terminé',
@@ -1199,6 +1204,7 @@ const pt = {
   'st.records': 'RECORDES',
   'hist.zones': 'ZONAS DE FREQUÊNCIA',
   'rest.sub': 'Uma contagem do descanso permitido entre games e sets, e uma vibração quando termina.',
+  'serveStats.sub': 'Tênis e padel: FALTA, ACE e DUPLA FALTA abaixo do placar, para aces, duplas faltas e seu primeiro e segundo saque.',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Teste grátis: restam {n} de {total} partidas',
   'pay.ended': 'Teste grátis encerrado',
@@ -1410,6 +1416,7 @@ const sr = {
   'st.records': 'REKORDI',
   'hist.zones': 'ZONE PULSA',
   'rest.sub': 'Odbrojavanje odmora koji pravila dozvoljavaju između gemova i setova, i vibracija kad istekne.',
+  'serveStats.sub': 'Tenis i padel: GREŠKA, AS i DUPLA GREŠKA ispod rezultata, za asove, duple greške i tvoj prvi i drugi servis.',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Besplatna proba: preostalo {n} od {total} mečeva',
   'pay.ended': 'Besplatna proba je završena',

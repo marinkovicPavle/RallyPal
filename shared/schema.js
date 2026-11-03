@@ -32,6 +32,8 @@ export const SETTINGS = [
   { key: 'tapPoints', group: 'display', kind: 'bool', def: true },
   // a countdown of the rest the rules allow between games and sets, and a vibration at its end (ROAST item 16)
   { key: 'restTimer', group: 'display', kind: 'bool', def: true },
+  // FAULT, ACE and DOUBLE FAULT under the score in tennis and padel, for serve statistics (ROAST item 20)
+  { key: 'serveStats', group: 'display', kind: 'bool', def: false },
   { key: 'screen', group: 'display', kind: 'enum', def: 'wrist', options: ['wrist', 'always'] },
   // auto: the watch's own language (decision 39)
   { key: 'lang', group: 'display', kind: 'enum', def: 'auto', options: ['auto', 'en', 'sr', 'es', 'it', 'de', 'fr', 'pt'] },
