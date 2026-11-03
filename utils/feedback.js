@@ -14,7 +14,9 @@ const PATTERN = {
   set: [220, 160, 220],
   match: [260, 160, 260, 160, 260],
   // four short pulses: change ends (unlike every point, game, set and match vibration)
-  ends: [70, 90, 70, 90, 70, 90, 70]
+  ends: [70, 90, 70, 90, 70, 90, 70],
+  // two long pulses: the rest is over
+  rest: [450, 200, 450]
 }
 const SETTING = { point: 'vibePoint', game: 'vibeGame', set: 'vibeSet', match: 'vibeMatch' }
 
@@ -63,6 +65,10 @@ export function pointBuzz(what) {
 // Change ends: after the point's own vibration
 export function endsBuzz() {
   later(() => play(PATTERN.ends), 900)
+}
+
+export function restBuzz() {
+  play(PATTERN.rest)
 }
 
 // a short pulse when a setting is switched, so the choice can be felt

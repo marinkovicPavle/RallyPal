@@ -30,6 +30,8 @@ export const SETTINGS = [
   { key: 'changeEnds', group: 'display', kind: 'bool', def: true },
   // false: points only with the keys, a tap on the screen does nothing (ROAST item 15); watches with 2+ keys
   { key: 'tapPoints', group: 'display', kind: 'bool', def: true },
+  // a countdown of the rest the rules allow between games and sets, and a vibration at its end (ROAST item 16)
+  { key: 'restTimer', group: 'display', kind: 'bool', def: true },
   { key: 'screen', group: 'display', kind: 'enum', def: 'wrist', options: ['wrist', 'always'] },
   // auto: the watch's own language (decision 39)
   { key: 'lang', group: 'display', kind: 'enum', def: 'auto', options: ['auto', 'en', 'sr', 'es', 'it', 'de', 'fr', 'pt'] },

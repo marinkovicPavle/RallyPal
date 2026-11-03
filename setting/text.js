@@ -192,6 +192,7 @@ const en = {
   'zones.note': 'The watch counts the zones from this maximum when a match ends: Z1 under 60%, Z2 60–70%, Z3 70–80%, Z4 80–90%, Z5 90% and more.',
   'st.records': 'RECORDS',
   'hist.zones': 'HEART RATE ZONES',
+  'rest.sub': 'A countdown of the rest the rules allow between games and sets, and a vibration when it is over.',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Free trial: {n} of {total} matches left',
   'pay.ended': 'Free trial ended',
@@ -393,6 +394,7 @@ const es = {
   'zones.note': 'El reloj calcula las zonas con este máximo al terminar el partido: Z1 por debajo del 60%, Z2 60–70%, Z3 70–80%, Z4 80–90%, Z5 90% o más.',
   'st.records': 'RÉCORDS',
   'hist.zones': 'ZONAS DE PULSO',
+  'rest.sub': 'Una cuenta atrás del descanso que permiten las reglas entre juegos y sets, y una vibración al terminar.',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Prueba gratis: quedan {n} de {total} partidos',
   'pay.ended': 'Prueba gratis terminada',
@@ -593,6 +595,7 @@ const it = {
   'zones.note': 'L’orologio calcola le zone da questo massimo a fine partita: Z1 sotto il 60%, Z2 60–70%, Z3 70–80%, Z4 80–90%, Z5 90% e oltre.',
   'st.records': 'RECORD',
   'hist.zones': 'ZONE DI BATTITO',
+  'rest.sub': 'Un conto alla rovescia del riposo consentito tra game e set, e una vibrazione alla fine.',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Prova gratuita: {n} di {total} partite rimaste',
   'pay.ended': 'Prova gratuita terminata',
@@ -791,6 +794,7 @@ const de = {
   'zones.note': 'Die Uhr berechnet die Zonen am Ende eines Matches aus diesem Maximum: Z1 unter 60 %, Z2 60–70 %, Z3 70–80 %, Z4 80–90 %, Z5 ab 90 %.',
   'st.records': 'REKORDE',
   'hist.zones': 'PULSZONEN',
+  'rest.sub': 'Ein Countdown der erlaubten Pause zwischen Spielen und Sätzen und eine Vibration, wenn sie vorbei ist.',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Gratis-Test: noch {n} von {total} Matches',
   'pay.ended': 'Gratis-Test beendet',
@@ -992,6 +996,7 @@ const fr = {
   'zones.note': 'La montre calcule les zones à partir de ce maximum à la fin du match : Z1 sous 60 %, Z2 60–70 %, Z3 70–80 %, Z4 80–90 %, Z5 90 % et plus.',
   'st.records': 'RECORDS',
   'hist.zones': 'ZONES CARDIAQUES',
+  'rest.sub': 'Un compte à rebours du repos autorisé entre les jeux et les sets, et une vibration à la fin.',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Essai gratuit : {n} matchs sur {total} restants',
   'pay.ended': 'Essai gratuit terminé',
@@ -1193,6 +1198,7 @@ const pt = {
   'zones.note': 'O relógio calcula as zonas a partir deste máximo no fim da partida: Z1 abaixo de 60%, Z2 60–70%, Z3 70–80%, Z4 80–90%, Z5 90% ou mais.',
   'st.records': 'RECORDES',
   'hist.zones': 'ZONAS DE FREQUÊNCIA',
+  'rest.sub': 'Uma contagem do descanso permitido entre games e sets, e uma vibração quando termina.',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Teste grátis: restam {n} de {total} partidas',
   'pay.ended': 'Teste grátis encerrado',
@@ -1403,6 +1409,7 @@ const sr = {
   'zones.note': 'Sat računa zone od ovog maksimuma kad se meč završi: Z1 ispod 60%, Z2 60–70%, Z3 70–80%, Z4 80–90%, Z5 90% i više.',
   'st.records': 'REKORDI',
   'hist.zones': 'ZONE PULSA',
+  'rest.sub': 'Odbrojavanje odmora koji pravila dozvoljavaju između gemova i setova, i vibracija kad istekne.',
   // free trial and unlock (shared/licence.js)
   'pay.left': 'Besplatna proba: preostalo {n} od {total} mečeva',
   'pay.ended': 'Besplatna proba je završena',

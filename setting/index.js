@@ -952,6 +952,7 @@ AppSettingsPage({
         choose('serveDisplay', ['full', 'team']),
         sw('labels', p('labels.sub')),
         sw('changeEnds', p('ends.sub')),
+        sw('restTimer', p('rest.sub')),
         sw('tapPoints', p('tap.sub')),
         choose('screen', ['wrist', 'always'], p('screen.note'))
       ]),

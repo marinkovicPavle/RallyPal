@@ -17,11 +17,12 @@ import {
 } from '../utils/ui'
 import { screen, heading, confirm, question, toast, LIST } from '../utils/widgets'
 import { createNav, goPage, quit } from '../utils/nav'
-import { pointBuzz, endsBuzz, stopAll } from '../utils/feedback'
+import { pointBuzz, endsBuzz, restBuzz, stopAll } from '../utils/feedback'
+import { trial } from '../utils/licence'
 import { loadActive, saveActive, clearActive, putMatch, settingsValues, loadHr, saveHr } from '../utils/data'
 import { startMonitor, stopMonitor, markAlive, markGone, takeBg } from '../utils/bg'
 import { countMatch } from '../utils/licence'
-import { view, addPoint, undo, setServer, endMatch, duration, pointPreview, idle } from '../shared/match'
+import { view, addPoint, undo, setServer, endMatch, duration, pointPreview, idle, lastSec } from '../shared/match'
 import { makeRecord, addHr, mergeHr } from '../shared/record'
 import { hrMaxOf, zonesFromCurve } from '../shared/insights'
 import { getProfile } from '@zos/user'
@@ -145,6 +146,17 @@ Page({
     const L = st.live
     if (L.hr) setText(L.hr, st.bpm ? String(st.bpm) : '--')
     if (L.dur) setText(L.dur, clock(sec))
+    // the rest countdown: the label counts down; at its end a vibration and the usual label again
+    if (st.restOn) {
+      const left = this.restLeft(view(st.m), now)
+      if (left > 0) setText(L.label, this.restText(view(st.m), left))
+      else if (st.restBuzzed !== lastSec(st.m)) {
+        st.restBuzzed = lastSec(st.m)
+        st.restOn = false
+        restBuzz()
+        st.nav.redraw()
+      }
+    }
     if (now - st.hrSavedAt >= SAVE_HR_MS) {
       st.hrSavedAt = now
       saveHr(st.m.id, st.hr)
@@ -239,11 +251,17 @@ Page({
     // the opponents above, you below (decision 8)
     this.row(1, D.rows[0], v)
     this.row(0, D.rows[1], v)
-    const label = this.labelText(v)
+    const left = this.restLeft(v, Date.now())
+    st.restOn = left > 0
+    const label = st.restOn ? this.restText(v, left) : this.labelText(v)
     if (label) {
       const lh = Math.round(D.labelSize * 1.4)
       const room = R ? Math.min(380, chordAt(D.labelY, lh)) : 360
-      at(MX, D.labelY, room, label, D.labelSize, C.lime, 'mm', { min: 15 })
+      // a countdown changes its digits every second: its size fits the widest of them from the start
+      const size = st.restOn
+        ? Math.min(...['0:00', '4:44', '8:88'].map((d) => fitSize(this.restText(v, 0).replace(/\S+$/, d), D.labelSize, px(room), 12)))
+        : D.labelSize
+      live.label = at(MX, D.labelY, room, label, size, C.lime, 'mm', { min: Math.min(15, size) })
     }
     // a tap on a half of the screen is that side's point; the buttons in the middle stay free. "Points by
     // tap" off: only the keys give points (a watch with one key always keeps the taps)
@@ -373,6 +391,20 @@ Page({
 
   // the bottom line: SET POINT, MATCH POINT...; pickleball the score call ("7-5-2"); a round to a
   // total the points still to play
+  // seconds of rest still to go (full version, "Rest timer" on), 0 when none
+  restLeft(v, now) {
+    const st = this.state
+    if (!v.rest || st.v.restTimer === false || !trial().licensed) return 0
+    return Math.max(0, v.rest - (duration(st.m, now, false) - lastSec(st.m)))
+  },
+
+  // "REST 1:24", or "CHANGE ENDS 1:24" at a change of ends
+  restText(v, left) {
+    const st = this.state
+    const word = v.changeEnds && st.v.changeEnds !== false ? t('label.change_ends') : t('label.rest')
+    return `${word} ${clock(left)}`
+  },
+
   labelText(v) {
     const st = this.state
     const ends = v.changeEnds && st.v.changeEnds !== false ? t('label.change_ends') : ''

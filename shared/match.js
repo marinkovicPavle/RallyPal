@@ -153,6 +153,7 @@ function init(m) {
   const st = {
     P,
     model: P.model,
+    sport: m.sport,
     doubles: !!m.doubles,
     first: m.first,
     pstart: [m.mine, 0],
@@ -181,6 +182,8 @@ function init(m) {
     mine: m.mine,
     swapped: false, // table tennis doubles: the receivers' order changed in the deciding game
     ends: false, // the players change ends before the next rally
+    rest: 0, // seconds of rest before the next rally (ROAST item 16)
+    midRest: false, // ... the interval halfway through a badminton game was given
     midEnds: false, // ... done halfway through the last game
     num: 1, // pickleball server number
     sp: 0, // pickleball serving player
@@ -255,6 +258,7 @@ function pointTo(st, w) {
   const before = Math.max(st.p[0], st.p[1])
   st.last = 'point'
   st.ends = false
+  st.rest = 0
   count(st, sv.team, w)
   if (sv.fresh) st.turns[sv.team]++
   st.lastSrv = sv.team
@@ -263,6 +267,35 @@ function pointTo(st, w) {
   else if (st.model === 'sideout') sideoutPoint(st, w)
   else rallyPoint(st, sv.team, w)
   changeEnds(st, before)
+  restAfter(st, before)
+}
+
+// The rest the rules allow before the next rally, in seconds (ROAST item 16):
+//   tennis, padel  120 between sets, 90 at a change of ends, none after the first game of a set or in a
+//                  tie-break
+//   table tennis   60 between games
+//   badminton      120 between games, 60 when the leading side first reaches 11 (8 in games to 15, 6 in 11)
+//   pickleball     120 between games
+//   squash         90 between games
+//   a round to a total: none
+function restAfter(st, before) {
+  if (st.done || st.model === 'total') return
+  if (st.model === 'tennis') {
+    if (st.last === 'set') st.rest = 120
+    else if (st.last === 'game' && st.ends && st.g[0] + st.g[1] > 1) st.rest = 90
+    return
+  }
+  if (st.last === 'game') {
+    st.midRest = false
+    st.rest = st.model === 'tt' ? 60 : st.model === 'squash' ? 90 : 120
+    return
+  }
+  if (st.sport !== 'badminton' || st.midRest) return
+  const half = Math.ceil(st.P.to / 2)
+  if (before < half && Math.max(st.p[0], st.p[1]) >= half) {
+    st.midRest = true
+    st.rest = 60
+  }
 }
 
 // Whether the players change ends now (ROAST item 14), by the rules of each sport:
@@ -478,6 +511,7 @@ function applyServer(st, team, player) {
   if (st.done) return
   st.last = null
   st.ends = false
+  st.rest = 0
   const n = st.p[0] + st.p[1]
   if (st.model === 'tennis' || st.model === 'tt' || st.model === 'total') {
     if (serverOf(st).team !== team) st.shift ^= 1
@@ -585,6 +619,7 @@ export function view(m) {
     left: st.model === 'total' ? st.P.total - st.p[0] - st.p[1] : null,
     label: labelOf(st),
     changeEnds: !!st.ends && !st.done,
+    rest: st.done ? 0 : st.rest,
     decisive: decisive(st),
     last: st.last,
     rallies: s.pts[0] + s.pts[1],
