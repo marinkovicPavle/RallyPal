@@ -16,18 +16,27 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..')
 FONT = '/usr/share/fonts/opentype/inter/Inter-Medium.otf'
+# a text with a character Inter doesn't have (Japanese) is drawn with this font throughout, as zos.js
+# measures it (widths.py)
+CJK_FONT = '/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf'
+INTER_CHARS = set(json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'inter-widths.json'), encoding='utf-8'))['inter'])
 _fonts = {}
 _imgs = {}
 
 
-def font(size):
+def is_cjk(text):
+    return any(c not in INTER_CHARS and ord(c) >= 0x2e80 for c in str(text))
+
+
+def font(size, cjk=False):
     size = max(6, int(round(size)))
-    if size not in _fonts:
+    key = (size, cjk)
+    if key not in _fonts:
         try:
-            _fonts[size] = ImageFont.truetype(FONT, size)
+            _fonts[key] = ImageFont.truetype(CJK_FONT if cjk else FONT, size)
         except OSError:
-            _fonts[size] = ImageFont.load_default()
-    return _fonts[size]
+            _fonts[key] = ImageFont.load_default()
+    return _fonts[key]
 
 
 def rgb(c, a=255):
@@ -47,17 +56,18 @@ def width(text, f):
     return f.getlength(text)
 
 
-def wrap(text, f, w):
+def wrap(text, f, w, cjk=False):
+    # at spaces; in a CJK text between any two characters
     lines = []
     for para in str(text).split('\n'):
         cur = ''
-        for word in para.split(' '):
-            t = (cur + ' ' + word).strip()
+        for part in (list(para) if cjk else para.split(' ')):
+            t = (cur + part).lstrip(' ') if cjk else (cur + ' ' + part).strip()
             if width(t, f) <= w or not cur:
                 cur = t
             else:
                 lines.append(cur)
-                cur = word
+                cur = part.lstrip(' ') if cjk else part
         lines.append(cur)
     return lines
 
@@ -97,12 +107,13 @@ def draw_text(d, p, chk, scroll, label, fill=None):
     text = str(p.get('text', ''))
     if not text:
         return
-    f = font(p.get('text_size', 20))
+    cjk = is_cjk(text)
+    f = font(p.get('text_size', 20), cjk)
     x, y, w, h = p['x'], p['y'] + scroll, p['w'], p['h']
     ascent, descent = f.getmetrics()
     lh = ascent + descent
     if p.get('text_style') == 'wrap':
-        lines = wrap(text, f, w)
+        lines = wrap(text, f, w, cjk)
         if len(lines) * lh > h + 2:
             chk.problems.append(f'wraps past its box ({len(lines)} lines): "{text[:40]}"')
     else:

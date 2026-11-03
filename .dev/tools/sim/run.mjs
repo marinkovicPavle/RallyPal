@@ -18,6 +18,10 @@ const require = createRequire(import.meta.url)
 const esbuild = require(process.env.ESBUILD || 'esbuild')
 
 const OUT = process.argv[2] || path.join(here, 'out')
+// the app's language files, as the watch reads them from its assets (utils/lang.js)
+const ASSETS = {}
+const LANG_DIR = path.join(root, 'assets', 'common.r', 'raw', 'lang')
+fs.readdirSync(LANG_DIR).forEach((f) => (ASSETS['raw/lang/' + f] = fs.readFileSync(path.join(LANG_DIR, f), 'latin1')))
 const ONLY = process.argv.slice(3)
 
 export const DEVICES = [
@@ -30,7 +34,7 @@ export const DEVICES = [
   { name: 'sq320x380', w: 320, h: 380, round: false, keys: 1 }
 ]
 // @zos/settings getLanguage() numbers
-const LANGS = { en: 2, sr: 24, es: 3, it: 10, de: 7, fr: 6, pt: 15 }
+const LANGS = { en: 2, sr: 24, es: 3, it: 10, de: 7, fr: 6, pt: 15, nl: 16, pl: 9, cs: 22, uk: 18, ru: 4, sv: 29, nb: 27, da: 28, fi: 26, ja: 11 }
 
 const KEY = { SELECT: 1, BACK: 2, UP: 3, DOWN: 4, HOME: 5, SHORTCUT: 6 }
 const EV = { CLICK: 1, LONG_PRESS: 2, PRESS: 4, RELEASE: 5 }
@@ -167,6 +171,7 @@ class Watch {
       scroll: 0,
       lang: LANGS[this.lang],
       uuid: 'SIMWATCH' + this.device.name.toUpperCase(),
+      assets: ASSETS,
       get bgPermission() {
         return self.bgPermission
       },

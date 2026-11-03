@@ -36,7 +36,7 @@ export const SETTINGS = [
   { key: 'serveStats', group: 'display', kind: 'bool', def: false },
   { key: 'screen', group: 'display', kind: 'enum', def: 'wrist', options: ['wrist', 'always'] },
   // auto: the watch's own language (decision 39)
-  { key: 'lang', group: 'display', kind: 'enum', def: 'auto', options: ['auto', 'en', 'sr', 'es', 'it', 'de', 'fr', 'pt'] },
+  { key: 'lang', group: 'display', kind: 'enum', def: 'auto', options: ['auto', 'en', 'sr', 'es', 'it', 'de', 'fr', 'pt', 'nl', 'pl', 'cs', 'uk', 'ru', 'sv', 'nb', 'da', 'fi', 'ja'] },
   // shown instead of YOU; typed on the phone
   { key: 'myName', group: 'names', kind: 'name', def: '' },
   // heart rate zones are counted from this maximum; 0: 220 minus the age from the Zepp profile (typed on the phone)

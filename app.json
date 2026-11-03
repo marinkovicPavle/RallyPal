@@ -99,6 +99,36 @@
     },
     "pt-PT": {
       "appName": "RallyPal"
+    },
+    "nl-NL": {
+      "appName": "RallyPal"
+    },
+    "pl-PL": {
+      "appName": "RallyPal"
+    },
+    "cs-CZ": {
+      "appName": "RallyPal"
+    },
+    "uk-UA": {
+      "appName": "RallyPal"
+    },
+    "ru-RU": {
+      "appName": "RallyPal"
+    },
+    "sv-SE": {
+      "appName": "RallyPal"
+    },
+    "nb-NO": {
+      "appName": "RallyPal"
+    },
+    "da-DK": {
+      "appName": "RallyPal"
+    },
+    "fi-FI": {
+      "appName": "RallyPal"
+    },
+    "ja-JP": {
+      "appName": "RallyPal"
     }
   },
   "defaultLanguage": "en-US"

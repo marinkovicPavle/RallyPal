@@ -26,7 +26,8 @@
 // net: { http(req) -> Promise<{ status, data }>, wait(ms) -> Promise }, the Zepp fetch (app-side/index.js)
 
 import { merge, normalize } from '../shared/settings'
-import { setLang, LANGS } from '../shared/i18n'
+import '../shared/lang/all'
+import { setLang, isLang } from '../shared/i18n'
 import { SPORT_TYPE, FALLBACK_TYPE, title, description, tcx, multipart, localIso, seconds, externalId, sameMatch,
   duplicateOf, signature } from '../shared/integrations'
 import { prettyScore } from '../shared/format'
@@ -229,7 +230,7 @@ export function createCore(storage, clock, net) {
   function applyLanguage() {
     const chosen = normalize(readJson('settings', null)).values.lang
     const watch = get('watchLang')
-    setLang(LANGS[chosen] ? chosen : LANGS[watch] ? watch : 'en')
+    setLang(isLang(chosen) ? chosen : isLang(watch) ? watch : 'en')
   }
 
   function what(rec) {

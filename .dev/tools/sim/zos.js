@@ -3,7 +3,7 @@
 
 const sim = () => globalThis.__sim
 
-import INTER from './inter-widths.json'
+import WIDTHS from './inter-widths.json'
 
 // ---- @zos/ui ---------------------------------------------------------------------------------------
 const names = ['IMG', 'TEXT', 'FILL_RECT', 'STROKE_RECT', 'ARC', 'CIRCLE', 'BUTTON', 'GROUP', 'SCROLL_LIST', 'VIEW_CONTAINER', 'QRCODE']
@@ -45,32 +45,41 @@ export function createWidget(type, p) {
 }
 // Text measured with the simulator's font (Inter Medium, what render.py draws with; the T-Rex 3 Pro's
 // own font measured about 5% narrower on a photo, so a text that fits here fits there)
-function inter(str, size) {
+// A text with a character Inter doesn't have (Japanese) is measured, and drawn, with a CJK font throughout
+// (as SaunaPal; the widths come from widths.py)
+const isCjk = (str) => [...String(str)].some((c) => WIDTHS.inter[c] === undefined && c.codePointAt(0) >= 0x2e80)
+function inter(str, size, cjk) {
+  const tbl = cjk === undefined ? (isCjk(str) ? WIDTHS.cjk : WIDTHS.inter) : cjk ? WIDTHS.cjk : WIDTHS.inter
   let n = 0
-  for (const c of String(str)) n += INTER[c] === undefined ? 620 : INTER[c]
+  for (const c of String(str)) n += tbl[c] === undefined ? 620 : tbl[c]
   return (n * size) / 1000
+}
+// Wrapping like render.py: at spaces, and in a CJK text between any two characters
+export function wrapLines(str, size, width) {
+  const cjk = isCjk(str)
+  const lines = []
+  String(str).split('\n').forEach((para) => {
+    let cur = ''
+    const parts = cjk ? [...para] : para.split(' ')
+    parts.forEach((part) => {
+      const t = cjk ? (cur + part).replace(/^ +/, '') : (cur + ' ' + part).trim()
+      if (inter(t, size, cjk) <= width || !cur) cur = t
+      else {
+        lines.push(cur)
+        cur = cjk ? part.replace(/^ +/, '') : part
+      }
+    })
+    lines.push(cur)
+  })
+  return { lines, cjk }
 }
 export function getTextLayout(str, o) {
   const size = o.text_size
   const lh = Math.round(size * 1.25)
   if (!o.wrapped) return { width: Math.ceil(inter(str, size)), height: lh, rows: 1 }
-  let rows = 0
-  let widest = 0
-  String(str).split('\n').forEach((para) => {
-    let cur = ''
-    para.split(' ').forEach((word) => {
-      const t = (cur + ' ' + word).trim()
-      if (inter(t, size) <= o.text_width || !cur) cur = t
-      else {
-        rows++
-        widest = Math.max(widest, inter(cur, size))
-        cur = word
-      }
-    })
-    rows++
-    widest = Math.max(widest, inter(cur, size))
-  })
-  return { width: Math.ceil(widest), height: rows * lh, rows }
+  const { lines, cjk } = wrapLines(str, size, o.text_width)
+  const widest = Math.max(0, ...lines.map((l) => inter(l, size, cjk)))
+  return { width: Math.ceil(widest), height: lines.length * lh, rows: lines.length }
 }
 export function deleteWidget(h) {
   if (h && h._w) h._w.deleted = true
@@ -250,6 +259,33 @@ export function getLanguage() {
 }
 
 // ---- @zos/fs ---------------------------------------------------------------------------------------
+// The app's assets (the language files): plain ASCII, as the build writes them
+export const O_RDONLY = 0
+const openAssets = {}
+let nextFd = 3
+function assetBytes(path) {
+  const s = sim().assets[path]
+  const out = new Uint8Array(s.length)
+  for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i) & 0xff
+  return out
+}
+export function statAssetsSync(o) {
+  return sim().assets[o.path] === undefined ? undefined : { size: sim().assets[o.path].length }
+}
+export function openAssetsSync(o) {
+  if (sim().assets[o.path] === undefined) return -1
+  const fd = nextFd++
+  openAssets[fd] = o.path
+  return fd
+}
+export function readSync(o) {
+  const bytes = assetBytes(openAssets[o.fd])
+  new Uint8Array(o.buffer).set(bytes.subarray(0, o.buffer.byteLength))
+  return Math.min(bytes.length, o.buffer.byteLength)
+}
+export function closeSync(fd) {
+  delete openAssets[fd]
+}
 export function readFileSync(o) {
   const v = sim().files[o.path]
   return v === undefined ? undefined : v

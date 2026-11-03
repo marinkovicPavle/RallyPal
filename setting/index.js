@@ -17,7 +17,8 @@ import { manualRecord } from '../shared/record'
 import { flowMarks } from '../shared/match'
 import { clock, hm, timeOfDay, dayLabel, prettyScore, percent, resultOf } from '../shared/format'
 import { VERSION, AUTHOR, AUTHOR_SITE, AUTHOR_URL, SUPPORT_EMAIL, feedbackMail } from '../shared/about'
-import { t, setLang, LANGS, LANG_NAMES } from '../shared/i18n'
+import '../shared/lang/all'
+import { t, setLang, isLang, LANG_NAMES } from '../shared/i18n'
 import { trialOf, canEdit, FREE_MATCHES, PRICE, PAY_URL, RESTORE_URL } from '../shared/licence'
 import { ZONE_COLORS, zonePercents, records, RECORDS } from '../shared/insights'
 import { recordLabel, recordValue, serveRows } from '../shared/stats'
@@ -349,7 +350,7 @@ AppSettingsPage({
     // the Language setting, or on Auto the watch's language (the phone's until the watch has synced)
     const chosen = this.values().lang
     const auto = storage.getItem('watchLang') || phoneLang()
-    code = LANGS[chosen] ? chosen : LANGS[auto] ? auto : 'en'
+    code = isLang(chosen) ? chosen : isLang(auto) ? auto : 'en'
     setLang(code)
     const tab = storage.getItem('uiTab') || 'setups'
     const tabs = View({ style: { display: 'flex', flexDirection: 'row', background: '#e3e3e8', borderRadius: '20px', padding: '3px', margin: '4px 0 6px' } },

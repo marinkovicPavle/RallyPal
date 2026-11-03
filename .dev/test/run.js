@@ -1,9 +1,11 @@
 // Scoring tests (no watch needed): npm test
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
 import {
   SPORTS, OPTIONS, DOUBLES, defaultRules, sanitizeRules, sanitizeDoubles, isOfficial, paramsOf, modelOf
 } from '../../shared/rules'
 import { newMatch, addPoint, setServer, endMatch, undo, view, scoreText, duration, flow, pointPreview, flowMarks, idle, cleanFrom, fromRows } from '../../shared/match'
+import '../../shared/lang/all'
 import { LANGS, langOfZepp, setLang, t } from '../../shared/i18n'
 import { TEXT } from '../../setting/text'
 import { DEFAULT_SETUPS, MAX_SETUPS, defaults, sanitize, sanitizeSetups, findSetup } from '../../shared/schema'
@@ -920,6 +922,18 @@ test('languages: every language has every key, with the same {placeholders}', ()
   })
 })
 
+test('languages: the watch reads the same texts from its assets (run node .dev/tools/i18n/build.mjs after a change)', () => {
+  Object.keys(LANGS).forEach((code) => {
+    ;['common.r', 'common.s'].forEach((shape) => {
+      const file = `assets/${shape}/raw/lang/${code}.json`
+      assert.ok(fs.existsSync(file), file)
+      const raw = fs.readFileSync(file, 'latin1')
+      assert.ok(!/[\x80-\xff]/.test(raw), file + ' is plain ASCII')
+      assert.deepEqual(JSON.parse(raw), LANGS[code], file + ' is out of date')
+    })
+  })
+})
+
 test('languages: the phone texts have every key in every language, with the same {placeholders}', () => {
   const en = TEXT.en
   Object.keys(TEXT).forEach((code) => {
@@ -940,6 +954,7 @@ test('languages: chosen from the watch, English for the rest', () => {
   assert.equal(langOfZepp(7), 'de')
   assert.equal(langOfZepp(20), 'pt')
   assert.equal(langOfZepp(24), 'sr')
+  assert.deepEqual([4, 9, 11, 16, 18, 22, 26, 27, 28, 29].map(langOfZepp), ['ru', 'pl', 'ja', 'nl', 'uk', 'cs', 'fi', 'nb', 'da', 'sv'])
   assert.equal(langOfZepp(99), 'en')
   setLang('sr')
   assert.equal(t('result.won'), 'POBEDA')
