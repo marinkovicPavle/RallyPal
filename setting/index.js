@@ -60,11 +60,13 @@ function p(key, params) {
 // 2 to 4 differently (key2), and 21, 31… as one
 function pn(key, n) {
   let form = n === 1 ? '1' : ''
-  if (code === 'sr') {
-    const d = n % 10
-    const h = n % 100
-    form = d === 1 && h !== 11 ? '1' : d >= 2 && d <= 4 && (h < 12 || h > 14) ? '2' : ''
-  }
+  const d = n % 10
+  const h = n % 100
+  // Serbian, Russian and Ukrainian: 21, 31… as one, 2 to 4 (22 to 24…) apart; Polish: only 1 as one, 2 to 4
+  // (22 to 24…) apart; Czech: 1, and 2 to 4
+  if (code === 'sr' || code === 'ru' || code === 'uk') form = d === 1 && h !== 11 ? '1' : d >= 2 && d <= 4 && (h < 12 || h > 14) ? '2' : ''
+  else if (code === 'pl') form = n === 1 ? '1' : d >= 2 && d <= 4 && (h < 12 || h > 14) ? '2' : ''
+  else if (code === 'cs') form = n === 1 ? '1' : n >= 2 && n <= 4 ? '2' : ''
   const own = form && (TEXT[code] || {})[key + form]
   return own ? own.replace(/\{n\}/g, String(n)) : p(key, { n })
 }
@@ -655,7 +657,10 @@ AppSettingsPage({
     const inMonth = list.filter((x) => monthKey(x.start) === monthKey(at))
     const won = inMonth.filter((x) => resultOf(x) === 'won').length
     const d = new Date(at)
-    const name = upperFirst(p('months')[d.getMonth()]) + (d.getFullYear() === new Date().getFullYear() ? '' : ` ${d.getFullYear()}`)
+    const month = upperFirst(p('months')[d.getMonth()])
+    const thisYear = d.getFullYear() === new Date().getFullYear()
+    // Japanese puts the year first: 2025年3月
+    const name = thisYear ? month : code === 'ja' ? `${d.getFullYear()}年${month}` : `${month} ${d.getFullYear()}`
     return row([
       txt(name, 18, INK, { fontWeight: 'bold' }),
       txt(inMonth.length === 1 ? t('history.one', { w: won }) : t('history.count', { n: inMonth.length, w: won }), 13, GRAY, { marginLeft: '10px' })

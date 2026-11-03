@@ -1,3 +1,14 @@
+import nl from './lang/nl'
+import pl from './lang/pl'
+import cs from './lang/cs'
+import uk from './lang/uk'
+import ru from './lang/ru'
+import sv from './lang/sv'
+import nb from './lang/nb'
+import da from './lang/da'
+import fi from './lang/fi'
+import ja from './lang/ja'
+
 // Texts of the phone page only (the watch never loads them). English is the base; the other languages
 // may leave keys out and fall back to English. The words the watch and the phone share (sports, settings,
 // statistics) stay in shared/lang.
@@ -1563,4 +1574,5 @@ const sr = {
   months: ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar']
 }
 
-export const TEXT = { en, sr, es, it, de, fr, pt }
+// the ten languages added with SaunaPal's list are in setting/lang/
+export const TEXT = { en, sr, es, it, de, fr, pt, nl, pl, cs, uk, ru, sv, nb, da, fi, ja }
