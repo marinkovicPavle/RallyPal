@@ -1,5 +1,5 @@
 // Shown in About on the watch and on the phone settings page
-export const VERSION = '2.0.0'
+export const VERSION = '1.0.0'
 export const AUTHOR = 'Pavle'
 export const AUTHOR_SITE = 'pavlemarinkovic.com'
 export const AUTHOR_URL = 'https://pavlemarinkovic.com'

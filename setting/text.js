@@ -149,7 +149,7 @@ const en = {
   // phase 6: the Strava guide, the line under each connection, matches waiting to be sent
   'strava.hideGuide': 'Hide the guide',
   'guide.intro': 'RallyPal sends your matches to Strava through your own Strava API app, so they go straight from your phone to your Strava account. You set it up once.',
-  'guide.1': '1. In a browser, sign in at strava.com and open strava.com/settings/api. If an app is already there (Strava gives one per account), you can use it: set its Authorization Callback Domain as in step 2 and go on with step 3.',
+  'guide.1': '1. In a browser, sign in at strava.com and open strava.com/settings/api (Strava asks for a paid Strava subscription to have an API app). If an app is already there (Strava gives one per account), you can use it: set its Authorization Callback Domain as in step 2 and go on with step 3.',
   'guide.2': '2. Fill in the form. Application Name: RallyPal (or any name). Category: Other. Website: https://zepp.com. Authorization Callback Domain: {domain}. Upload any icon if Strava asks for one, accept the terms and create the app.',
   'guide.3': '3. On the app page, copy the Client ID and the Client Secret (tap Show).',
   'guide.4': '4. Paste them above in Client ID and Client Secret, then tap “{connect}” and allow access.',
@@ -350,7 +350,7 @@ const es = {
   // phase 6: the Strava guide, the line under each connection, matches waiting to be sent
   'strava.hideGuide': 'Ocultar la guía',
   'guide.intro': 'RallyPal envía tus partidos a Strava mediante tu propia app de la API de Strava, así que van directamente de tu móvil a tu cuenta de Strava. Solo hay que configurarlo una vez.',
-  'guide.1': '1. En un navegador, inicia sesión en strava.com y abre strava.com/settings/api. Si ya tienes una app ahí (Strava da una por cuenta), puedes usarla: pon su Authorization Callback Domain como en el paso 2 y sigue con el paso 3.',
+  'guide.1': '1. En un navegador, inicia sesión en strava.com y abre strava.com/settings/api (Strava pide una suscripción de pago a Strava para tener una app de API). Si ya tienes una app ahí (Strava da una por cuenta), puedes usarla: pon su Authorization Callback Domain como en el paso 2 y sigue con el paso 3.',
   'guide.2': '2. Rellena el formulario. Application Name: RallyPal (o cualquier nombre). Category: Other. Website: https://zepp.com. Authorization Callback Domain: {domain}. Sube cualquier icono si Strava lo pide, acepta las condiciones y crea la app.',
   'guide.3': '3. En la página de la app, copia el Client ID y el Client Secret (toca Show).',
   'guide.4': '4. Pégalos arriba en Client ID y Client Secret, luego toca «{connect}» y permite el acceso.',
@@ -550,7 +550,7 @@ const it = {
   // phase 6: the Strava guide, the line under each connection, matches waiting to be sent
   'strava.hideGuide': 'Nascondi la guida',
   'guide.intro': 'RallyPal invia le tue partite a Strava tramite la tua app API di Strava, così vanno direttamente dal telefono al tuo account Strava. La configuri una sola volta.',
-  'guide.1': '1. In un browser, accedi a strava.com e apri strava.com/settings/api. Se lì hai già un\'app (Strava ne concede una per account), puoi usarla: imposta il suo Authorization Callback Domain come al passo 2 e continua dal passo 3.',
+  'guide.1': '1. In un browser, accedi a strava.com e apri strava.com/settings/api (Strava chiede un abbonamento Strava a pagamento per avere un\'app API). Se lì hai già un\'app (Strava ne concede una per account), puoi usarla: imposta il suo Authorization Callback Domain come al passo 2 e continua dal passo 3.',
   'guide.2': '2. Compila il modulo. Application Name: RallyPal (o un nome qualsiasi). Category: Other. Website: https://zepp.com. Authorization Callback Domain: {domain}. Carica un\'icona qualsiasi se Strava la chiede, accetta i termini e crea l\'app.',
   'guide.3': '3. Nella pagina dell\'app, copia Client ID e Client Secret (tocca Show).',
   'guide.4': '4. Incollali qui sopra in Client ID e Client Secret, poi tocca «{connect}» e consenti l\'accesso.',
@@ -748,7 +748,7 @@ const de = {
   // phase 6: the Strava guide, the line under each connection, matches waiting to be sent
   'strava.hideGuide': 'Anleitung ausblenden',
   'guide.intro': 'RallyPal sendet deine Matches über deine eigene Strava-API-App an Strava, so gehen sie direkt von deinem Handy zu deinem Strava-Konto. Du richtest das einmal ein.',
-  'guide.1': '1. Melde dich in einem Browser bei strava.com an und öffne strava.com/settings/api. Hast du dort schon eine App (Strava gibt eine pro Konto), kannst du sie nehmen: Stell ihre Authorization Callback Domain wie in Schritt 2 ein und mach mit Schritt 3 weiter.',
+  'guide.1': '1. Melde dich in einem Browser bei strava.com an und öffne strava.com/settings/api (Strava verlangt für eine API-App ein bezahltes Strava-Abo). Hast du dort schon eine App (Strava gibt eine pro Konto), kannst du sie nehmen: Stell ihre Authorization Callback Domain wie in Schritt 2 ein und mach mit Schritt 3 weiter.',
   'guide.2': '2. Fülle das Formular aus. Application Name: RallyPal (oder ein beliebiger Name). Category: Other. Website: https://zepp.com. Authorization Callback Domain: {domain}. Lade ein beliebiges Icon hoch, falls Strava danach fragt, akzeptiere die Bedingungen und erstelle die App.',
   'guide.3': '3. Kopiere auf der App-Seite die Client ID und das Client Secret (tippe auf Show).',
   'guide.4': '4. Füge sie oben bei Client ID und Client Secret ein, tippe dann auf „{connect}“ und erlaube den Zugriff.',
@@ -949,7 +949,7 @@ const fr = {
   // phase 6: the Strava guide, the line under each connection, matches waiting to be sent
   'strava.hideGuide': 'Masquer le guide',
   'guide.intro': 'RallyPal envoie vos matchs à Strava via votre propre app API Strava : ils vont directement de votre téléphone à votre compte Strava. Une seule configuration suffit.',
-  'guide.1': '1. Dans un navigateur, connectez-vous sur strava.com et ouvrez strava.com/settings/api. Si une app y est déjà (Strava en donne une par compte), vous pouvez l\'utiliser : réglez son Authorization Callback Domain comme à l\'étape 2 et passez à l\'étape 3.',
+  'guide.1': '1. Dans un navigateur, connectez-vous sur strava.com et ouvrez strava.com/settings/api (Strava demande un abonnement Strava payant pour avoir une app API). Si une app y est déjà (Strava en donne une par compte), vous pouvez l\'utiliser : réglez son Authorization Callback Domain comme à l\'étape 2 et passez à l\'étape 3.',
   'guide.2': '2. Remplissez le formulaire. Application Name : RallyPal (ou un autre nom). Category : Other. Website : https://zepp.com. Authorization Callback Domain : {domain}. Importez une icône si Strava en demande une, acceptez les conditions et créez l\'app.',
   'guide.3': '3. Sur la page de l\'app, copiez le Client ID et le Client Secret (touchez Show).',
   'guide.4': '4. Collez-les ci-dessus dans Client ID et Client Secret, puis touchez « {connect} » et autorisez l\'accès.',
@@ -1150,7 +1150,7 @@ const pt = {
   // phase 6: the Strava guide, the line under each connection, matches waiting to be sent
   'strava.hideGuide': 'Ocultar o guia',
   'guide.intro': 'O RallyPal envia suas partidas ao Strava pelo seu próprio app da API do Strava, então elas vão direto do seu celular para a sua conta do Strava. Você configura uma vez só.',
-  'guide.1': '1. Em um navegador, entre em strava.com e abra strava.com/settings/api. Se já houver um app ali (o Strava dá um por conta), você pode usá-lo: ajuste o Authorization Callback Domain dele como no passo 2 e siga para o passo 3.',
+  'guide.1': '1. Em um navegador, entre em strava.com e abra strava.com/settings/api (o Strava pede uma assinatura paga do Strava para ter um app de API). Se já houver um app ali (o Strava dá um por conta), você pode usá-lo: ajuste o Authorization Callback Domain dele como no passo 2 e siga para o passo 3.',
   'guide.2': '2. Preencha o formulário. Application Name: RallyPal (ou qualquer nome). Category: Other. Website: https://zepp.com. Authorization Callback Domain: {domain}. Envie qualquer ícone se o Strava pedir, aceite os termos e crie o app.',
   'guide.3': '3. Na página do app, copie o Client ID e o Client Secret (toque em Show).',
   'guide.4': '4. Cole-os acima em Client ID e Client Secret, depois toque em “{connect}” e permita o acesso.',
@@ -1359,7 +1359,7 @@ const sr = {
   // phase 6: the Strava guide, the line under each connection, matches waiting to be sent
   'strava.hideGuide': 'Sakrij uputstvo',
   'guide.intro': 'RallyPal šalje mečeve na Stravu preko tvoje Strava API aplikacije, pa idu pravo sa tvog telefona na tvoj Strava nalog. Podešava se samo jednom.',
-  'guide.1': '1. U pregledaču se prijavi na strava.com i otvori strava.com/settings/api. Ako tamo već imaš aplikaciju (Strava daje jednu po nalogu), možeš da koristiš nju: podesi joj Authorization Callback Domain kao u koraku 2 i nastavi od koraka 3.',
+  'guide.1': '1. U pregledaču se prijavi na strava.com i otvori strava.com/settings/api (Strava traži plaćenu Strava pretplatu za API aplikaciju). Ako tamo već imaš aplikaciju (Strava daje jednu po nalogu), možeš da koristiš nju: podesi joj Authorization Callback Domain kao u koraku 2 i nastavi od koraka 3.',
   'guide.2': '2. Popuni formular. Application Name: RallyPal (ili bilo koje ime). Category: Other. Website: https://zepp.com. Authorization Callback Domain: {domain}. Ako Strava traži ikonicu, otpremi bilo koju, prihvati uslove i napravi aplikaciju.',
   'guide.3': '3. Na stranici aplikacije kopiraj Client ID i Client Secret (dodirni Show).',
   'guide.4': '4. Nalepi ih gore u Client ID i Client Secret, zatim dodirni „{connect}“ i dozvoli pristup.',
